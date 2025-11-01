@@ -17,22 +17,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-VIDEO_PATH = Path(__file__).parent / "vidios/teste.mp4"
+VIDEO_PATH = Path(__file__).parent / "videos"
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
 
 download_status = {"is_downloading": False, "progress": 0}
 
 
-async def baixar_video_m3u8(url: str):
-    """Baixa vídeo m3u8 usando yt-dlp"""
+async def baixar_video_m3u8(nome: str, ep: str):
+    """Baixa vídeo m3u8 usando yt-dlp."""
     download_status["is_downloading"] = True
     download_status["progress"] = 0
+    url = f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep.zfill(3)}.mp4/media-1/stream.m3u8"
 
     ydl_opts = {
-        "outtmpl": str(VIDEO_PATH),
+        "outtmpl": str(VIDEO_PATH / f"{nome}_{ep}.mp4"),
         "concurrent_fragment_downloads": 16,
-        "overwrites": True,
+        "overwrites": False,
         "http_headers": {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Referer": "https://www.api-vidios.net/",
@@ -65,22 +66,36 @@ def ranged_reader(file_path: Path, start: int, end: int):
 
 
 @app.get("/download")
-async def iniciar_download(nome: str, ep: int):
+async def iniciar_download(nome: str, ep: str):
     """Inicia o download do vídeo m3u8."""
     if download_status["is_downloading"]:
         raise HTTPException(status_code=409, detail="Download já em andamento")
-    url = f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{str(ep).zfill(3)}.mp4/media-1/stream.m3u8"
+    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
+    if saida.exists():
+        raise HTTPException(status_code=409, detail="Já existe")
 
-    asyncio.create_task(baixar_video_m3u8(url))
+    asyncio.create_task(baixar_video_m3u8(nome, ep))
     return {"message": "Download iniciado", "status": "downloading"}
 
 
-@app.get("/video")
-async def stream_video(range: Optional[str] = Header(None)):
-    if not VIDEO_PATH.exists():
-        raise HTTPException(status_code=404, detail="Vídeo não encontrado. Inicie o download primeiro.")
+@app.get("/status")
+async def status(nome: str, ep: str):
+    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
+    headers = {"Cache-Control": "no-store"}
+    if saida.exists():
+        return Response(status_code=200, headers=headers)
+    return Response(status_code=404, headers=headers)
 
-    file_size = VIDEO_PATH.stat().st_size
+
+@app.get("/video")
+async def stream_video(nome: str, ep: str, range: Optional[str] = Header(None)):
+    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
+    if not saida.exists():
+        raise HTTPException(status_code=404, detail="Vídeo não encontrado. Inicie o download primeiro.")
+    if not nome and not ep:
+        return Response(status_code=404)
+
+    file_size = saida.stat().st_size
 
     # Parse do Range header (ou usa 0 até o final se não vier)
     if range:
@@ -106,7 +121,7 @@ async def stream_video(range: Optional[str] = Header(None)):
 
     # SEMPRE retorna 206 Partial Content
     return StreamingResponse(
-        ranged_reader(VIDEO_PATH, start, end),
+        ranged_reader(saida, start, end),
         media_type="video/mp4",
         status_code=206,
         headers={

@@ -35,7 +35,13 @@ app.get("/video/*", async (req, res) => {
     res.status(500).send("Erro ao carregar vídeo");
   }
 });
-
+const list = [
+  "tougen-anki",
+  "one-piece",
+  "spy-x-family-3",
+  "boku-no-hero-academia-final",
+  "gachiakuta",
+];
 app.listen(3000, () => {
   console.log("Servidor rodando em http://localhost:3000");
 });
