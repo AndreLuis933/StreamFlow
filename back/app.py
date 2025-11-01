@@ -1,132 +1,88 @@
-import asyncio
-from pathlib import Path
-from typing import Optional
-
-import yt_dlp
-from fastapi import FastAPI, Header, HTTPException
+import urllib.parse
+from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi.responses import PlainTextResponse, StreamingResponse
+import httpx
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, StreamingResponse
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        # adicione outras origens se necessário
+        "*",  # durante o dev, pode usar *, mas em prod prefira listas específicas
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-VIDEO_PATH = Path(__file__).parent / "videos"
-CHUNK_SIZE = 1024 * 1024  # 1 MB
+FIXED_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Referer": "https://www.api-vidios.net/",
+}
 
 
-download_status = {"is_downloading": False, "progress": 0}
+def build_m3u8_url(nome: str, ep: str) -> str:
+    ep_norm = ep.zfill(3)
+    return f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep_norm}.mp4/media-1/stream.m3u8"
 
 
-async def baixar_video_m3u8(nome: str, ep: str):
-    """Baixa vídeo m3u8 usando yt-dlp."""
-    download_status["is_downloading"] = True
-    download_status["progress"] = 0
-    url = f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep.zfill(3)}.mp4/media-1/stream.m3u8"
+@app.get("/m3u8")
+async def proxy_m3u8(nome: str = Query(...), ep: str = Query(...)):
+    """
+    Proxy da playlist .m3u8.
+    - Baixa a m3u8 da origem com headers fixos
+    - Reescreve as URLs de segmentos para passar por /seg?u=...
+    - Retorna m3u8 com content-type correto
+    """
+    src_url = build_m3u8_url(nome, ep)
+    async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
+        r = await client.get(src_url, headers=FIXED_HEADERS)
+        if r.status_code != 200:
+            raise HTTPException(status_code=502, detail=f"Falha ao obter m3u8 ({r.status_code})")
+        text = r.text
 
-    ydl_opts = {
-        "outtmpl": str(VIDEO_PATH / f"{nome}_{ep}.mp4"),
-        "concurrent_fragment_downloads": 16,
-        "overwrites": False,
-        "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Referer": "https://www.api-vidios.net/",
-        },
-        "progress_hooks": [lambda d: download_status.update({"progress": d.get("downloaded_bytes", 0)})],
-    }
+    # Base para resolver URLs relativas
+    base = urllib.parse.urljoin(src_url, ".")
 
-    try:
-        # Executa yt-dlp em thread separada para não bloquear
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(ydl_opts).download([url]))
-        download_status["is_downloading"] = False
-        return True
-    except Exception as e:
-        download_status["is_downloading"] = False
-        raise HTTPException(status_code=500, detail=f"Erro ao baixar: {str(e)}")
+    # Reescreve linhas que apontam para chunks (não mexe nas diretivas #EXT-...)
+    out_lines = []
+    for line in text.splitlines():
+        line_stripped = line.strip()
+        if not line_stripped or line_stripped.startswith("#"):
+            out_lines.append(line)
+            continue
+        # Resolver URL absoluta do chunk
+        abs_url = urllib.parse.urljoin(base, line_stripped)
+        proxied = f"/seg?u={urllib.parse.quote(abs_url, safe='')}"
+        out_lines.append(proxied)
 
+    rewritten = "\n".join(out_lines) + ("\n" if not out_lines or not out_lines[-1].endswith("\n") else "")
 
-def ranged_reader(file_path: Path, start: int, end: int):
-    """Generator que lê bytes do arquivo no intervalo [start, end]"""
-    with open(file_path, "rb") as f:
-        f.seek(start)
-        bytes_to_read = end - start + 1
-        while bytes_to_read > 0:
-            chunk = f.read(min(CHUNK_SIZE, bytes_to_read))
-            if not chunk:
-                break
-            bytes_to_read -= len(chunk)
-            yield chunk
-
-
-@app.get("/download")
-async def iniciar_download(nome: str, ep: str):
-    """Inicia o download do vídeo m3u8."""
-    if download_status["is_downloading"]:
-        raise HTTPException(status_code=409, detail="Download já em andamento")
-    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
-    if saida.exists():
-        raise HTTPException(status_code=409, detail="Já existe")
-
-    asyncio.create_task(baixar_video_m3u8(nome, ep))
-    return {"message": "Download iniciado", "status": "downloading"}
-
-
-@app.get("/status")
-async def status(nome: str, ep: str):
-    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
-    headers = {"Cache-Control": "no-store"}
-    if saida.exists():
-        return Response(status_code=200, headers=headers)
-    return Response(status_code=404, headers=headers)
-
-
-@app.get("/video")
-async def stream_video(nome: str, ep: str, range: Optional[str] = Header(None)):
-    saida = VIDEO_PATH / f"{nome}_{ep}.mp4"
-    if not saida.exists():
-        raise HTTPException(status_code=404, detail="Vídeo não encontrado. Inicie o download primeiro.")
-    if not nome and not ep:
-        return Response(status_code=404)
-
-    file_size = saida.stat().st_size
-
-    # Parse do Range header (ou usa 0 até o final se não vier)
-    if range:
-        try:
-            range = range.strip().lower()
-            assert range.startswith("bytes=")
-            parts = range.replace("bytes=", "").split("-")
-            start = int(parts[0]) if parts[0] else 0
-            end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
-        except Exception:
-            # Range inválido, retorna erro
-            return Response(status_code=416)  # ← Mudança aqui
-    else:
-        # Sem Range: trata como se pedisse tudo (0 até o final)
-        start = 0
-        end = file_size - 1
-
-    # Valida range
-    if start >= file_size or end >= file_size or start > end:
-        return Response(status_code=416)  # ← Mudança aqui
-
-    content_length = end - start + 1
-
-    # SEMPRE retorna 206 Partial Content
-    return StreamingResponse(
-        ranged_reader(saida, start, end),
-        media_type="video/mp4",
-        status_code=206,
-        headers={
-            "Content-Range": f"bytes {start}-{end}/{file_size}",
-            "Content-Length": str(content_length),
-            "Accept-Ranges": "bytes",
-        },
+    return PlainTextResponse(
+        rewritten, media_type="application/vnd.apple.mpegurl", headers={"Cache-Control": "no-store"}
     )
+
+
+@app.get("/seg")
+async def proxy_segment(u: str = Query(...)):
+    """Proxy de segmentos (.ts/.m4s/.aac...):
+    - Busca o segmento com headers fixos
+    - Faz stream dos bytes para o cliente.
+    """
+    url = urllib.parse.unquote(u)
+
+    async def gen():
+        async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
+            async with client.stream("GET", url, headers=FIXED_HEADERS) as r:
+                if r.status_code != 200:
+                    # Passa erro
+                    raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
+                async for chunk in r.aiter_bytes(64 * 1024):
+                    yield chunk
+
+    # Content-Type genérico: o player/hls.js não depende do mimetype de cada pedaço
+    return StreamingResponse(gen(), media_type="video/MP2T", headers={"Cache-Control": "no-store"})

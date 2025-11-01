@@ -8,6 +8,7 @@ dependencies = [
     "aiohttp>=3.13.1",
     "fastapi>=0.120.0",
     "flask>=3.1.2",
+    "httpx>=0.28.1",
     "m3u8>=6.0.0",
     "pyautogui>=0.9.54",
     "pynput>=1.8.1",
