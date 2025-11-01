@@ -5,7 +5,7 @@ import Player from "./player";
 
 const Home = () => {
   const [titulo, setTitulo] = useState("boku-no-hero-academia-final");
-  const [ep, setEp] = useState<string>("3");
+  const [ep, setEp] = useState<string>("1");
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
