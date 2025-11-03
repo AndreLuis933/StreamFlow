@@ -1,11 +1,15 @@
 import CssBaseline from "@mui/material/CssBaseline";
 import { Box, TextField } from "@mui/material";
 import { useState } from "react";
-import Player from "./player";
+import VideoPlayer from "./player";
 
 const Home = () => {
   const [titulo, setTitulo] = useState("boku-no-hero-academia-final");
   const [ep, setEp] = useState<string>("1");
+
+  const m3u8Url = `http://localhost:8000/m3u8?nome=${encodeURIComponent(
+    titulo
+  )}&ep=${encodeURIComponent(ep)}`;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", p: 2 }}>
@@ -28,7 +32,7 @@ const Home = () => {
       </Box>
 
       <Box sx={{ width: "100%", maxWidth: 960, mx: "auto", mt: 2 }}>
-        <Player titulo={titulo} ep={ep} />
+        <VideoPlayer src={m3u8Url} />
       </Box>
     </Box>
   );

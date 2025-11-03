@@ -1,8 +1,9 @@
 import urllib.parse
-from fastapi import FastAPI, HTTPException, Query, Response
-from fastapi.responses import PlainTextResponse, StreamingResponse
+
 import httpx
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, StreamingResponse
 
 app = FastAPI()
 
@@ -32,11 +33,10 @@ def build_m3u8_url(nome: str, ep: str) -> str:
 
 @app.get("/m3u8")
 async def proxy_m3u8(nome: str = Query(...), ep: str = Query(...)):
-    """
-    Proxy da playlist .m3u8.
+    """Proxy da playlist .m3u8.
     - Baixa a m3u8 da origem com headers fixos
     - Reescreve as URLs de segmentos para passar por /seg?u=...
-    - Retorna m3u8 com content-type correto
+    - Retorna m3u8 com content-type correto.
     """
     src_url = build_m3u8_url(nome, ep)
     async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
@@ -63,7 +63,9 @@ async def proxy_m3u8(nome: str = Query(...), ep: str = Query(...)):
     rewritten = "\n".join(out_lines) + ("\n" if not out_lines or not out_lines[-1].endswith("\n") else "")
 
     return PlainTextResponse(
-        rewritten, media_type="application/vnd.apple.mpegurl", headers={"Cache-Control": "no-store"}
+        rewritten,
+        media_type="application/vnd.apple.mpegurl",
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -76,13 +78,15 @@ async def proxy_segment(u: str = Query(...)):
     url = urllib.parse.unquote(u)
 
     async def gen():
-        async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
-            async with client.stream("GET", url, headers=FIXED_HEADERS) as r:
-                if r.status_code != 200:
-                    # Passa erro
-                    raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
-                async for chunk in r.aiter_bytes(64 * 1024):
-                    yield chunk
+        async with (
+            httpx.AsyncClient(follow_redirects=True, timeout=60) as client,
+            client.stream("GET", url, headers=FIXED_HEADERS) as r,
+        ):
+            if r.status_code != 200:
+                # Passa erro
+                raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
+            async for chunk in r.aiter_bytes(64 * 1024):
+                yield chunk
 
     # Content-Type genérico: o player/hls.js não depende do mimetype de cada pedaço
     return StreamingResponse(gen(), media_type="video/MP2T", headers={"Cache-Control": "no-store"})
