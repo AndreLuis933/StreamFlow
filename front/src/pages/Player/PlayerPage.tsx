@@ -84,7 +84,7 @@ export default function PlayerPage() {
 
             {temProximo && (
               <EpNavButton
-                label="Próximo"
+                label="Próximo "
                 epNumber={ep + 1}
                 thumbUrl={getEpisodeImageUrlBySlug(anime, ep + 1)}
                 $align="right"
