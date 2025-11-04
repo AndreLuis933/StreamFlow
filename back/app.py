@@ -1,7 +1,7 @@
 import urllib.parse
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
@@ -90,3 +90,29 @@ async def proxy_segment(u: str = Query(...)):
 
     # Content-Type genérico: o player/hls.js não depende do mimetype de cada pedaço
     return StreamingResponse(gen(), media_type="video/MP2T", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/data")
+async def search(q: str = Query(...)):
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(f"https://api-search.api-vidios.net/data?q={q}", headers=FIXED_HEADERS)
+    return r.json()
+
+
+@app.get("/animes")
+async def animes(id: str = Query(...), page: str = Query(...)):
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"https://apiv3-prd.api-vidios.net/animes/{id}/episodes?page={page}&order=desc", headers=FIXED_HEADERS
+        )
+    return r.json()
+
+
+@app.get("/detalhes")
+async def detalhes(id: str = Query(...)):
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get(
+            f"https://www.api-vidios.net/_next/data/RWySOXkJe1_j6zQD6H8T_/a/{id}.json?anime={id}",
+            headers=FIXED_HEADERS,
+        )
+    return r.json()
