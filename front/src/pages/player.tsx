@@ -50,7 +50,7 @@ const VideoPlayer = () => {
     const fetchData = async () => {
       if (!id) return;
       const response = await axios.get(
-        `http://localhost:8000/detalhes?id=${encodeURIComponent(id)}`
+        `http://localhost:8000/detalhes?slug=${encodeURIComponent(id)}`
       );
       setTitulo(response.data.pageProps.data.originaltitulo);
       setTemProximo(response.data.pageProps.data.episodes > ep);

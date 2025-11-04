@@ -3,8 +3,8 @@ import { Box, Typography, Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import styled from "styled-components";
-import type { ApiResponse, Episode } from "../types/AnimeApi";
-import Home from "./Home";
+import type { ApiAnimeResponse, Episode } from "../types/typeApi";
+import SearchTextField from "../components/SearchTextField";
 
 const EpisodeCard = styled(Link)`
   display: flex;
@@ -15,7 +15,7 @@ const EpisodeCard = styled(Link)`
   overflow: hidden;
   transition: transform 0.2s;
   width: 100%;
-  height: 180px; /* altura fixa do card */
+  height: 180px;
   &:hover {
     transform: scale(1.02);
   }
@@ -23,8 +23,8 @@ const EpisodeCard = styled(Link)`
 
 const EpisodeImage = styled.img`
   width: 100%;
-  height: 100px; /* altura fixa da thumb */
-  object-fit: cover; /* preenche cortando */
+  height: 100px;
+  object-fit: cover;
   flex-shrink: 0;
 `;
 
@@ -34,7 +34,7 @@ const EpisodeInfo = styled(Box)`
   display: flex;
   flex-direction: column;
   gap: 4px;
-  flex: 1; /* ocupa o restante do card */
+  flex: 1;
   min-height: 0;
 `;
 
@@ -53,9 +53,9 @@ const EpisodeTitle = styled(Typography)`
   font-size: 12px;
   line-height: 1.2;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* até 2 linhas */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden; /* ellipsis multi-linha */
+  overflow: hidden;
 `;
 
 const Anime = () => {
@@ -66,8 +66,10 @@ const Anime = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
-      const response = await axios.get<ApiResponse>(
-        `http://localhost:8000/animes?id=${encodeURIComponent(id)}&page=${page}`
+      const response = await axios.get<ApiAnimeResponse>(
+        `http://localhost:8000/animes?slug=${encodeURIComponent(
+          id
+        )}&page=${page}`
       );
       setEps(response.data.data);
     };
@@ -80,7 +82,7 @@ const Anime = () => {
   return (
     <Box sx={{ p: 3, bgcolor: "#000", minHeight: "100vh" }}>
       <Box sx={{p:4}}>
-        <Home />
+        <SearchTextField />
       </Box>
       <Grid container spacing={2}>
         {eps.length > 0 ? (

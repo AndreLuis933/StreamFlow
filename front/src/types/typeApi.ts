@@ -1,4 +1,4 @@
-export interface ApiResponse {
+export interface ApiAnimeResponse {
   code: number;
   meta: {
     timestamp: number;
@@ -33,3 +33,16 @@ export interface AnimeInfo {
   slug_serie: string;
   generate_id: string;
 }
+
+export type ApiDataResponse = {
+  code: number;
+  message: string;
+  data: {
+    id: number | string;
+    title: string;
+    type: string;
+    slug: string;
+    generic_path: string;
+    synopsis: string;
+  }[];
+};
