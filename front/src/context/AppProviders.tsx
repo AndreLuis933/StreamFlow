@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { ModalProvider } from "./Modal";
-import { darkTheme } from "../theme";
+import { darkTheme } from "@/theme";
 
 type Props = {
   children: ReactNode;

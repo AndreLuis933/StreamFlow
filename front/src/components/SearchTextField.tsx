@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { TextField } from "@mui/material";
-import axios from "axios";
 import styled from "styled-components";
-import { useDebounce } from "../hooks/useDebounce";
-import { TYPE_MAP } from "../consts/const";
-import type { ApiDataResponse } from "../types/typeApi";
+import { useDebounce } from "@/hooks/useDebounce";
+import { TYPE_MAP } from "@/consts/const";
+import type { ApiDataResponse } from "@/types/api";
+import { fetchAnimeBySearch } from "@/services/anime";
 
 const FieldWrap = styled.div`
   position: relative;
@@ -78,10 +78,8 @@ const SearchTextField = () => {
     const fetchData = async () => {
       if (debounced.trim().length > 2) {
         try {
-          const r = await axios.get<ApiDataResponse>(
-            `http://localhost:8000/data?q=${encodeURIComponent(debounced)}`
-          );
-          setResults(r.data?.data ?? []);
+          const r = await fetchAnimeBySearch(debounced);
+          setResults(r.data?? []);
           setOpen(true);
         } catch (e) {
           setResults([]);

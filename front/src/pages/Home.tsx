@@ -1,4 +1,4 @@
-import SearchTextField from "../components/SearchTextField";
+import SearchTextField from "@/components/SearchTextField";
 
 const Home = () => {
   return <SearchTextField />;

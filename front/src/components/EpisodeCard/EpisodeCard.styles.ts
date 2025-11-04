@@ -1,0 +1,55 @@
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { Box, Typography } from "@mui/material";
+
+export const Card = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  background: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s;
+  width: 100%;
+  height: 180px;
+  &:hover {
+    transform: scale(1.02);
+  }
+`;
+
+export const Image = styled.img`
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
+export const Info = styled(Box)`
+  padding: 10px;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+`;
+
+export const Number = styled(Typography)`
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  span {
+    color: #ff8c00;
+  }
+`;
+
+export const Title = styled(Typography)`
+  color: #999;
+  font-size: 12px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
