@@ -12,7 +12,8 @@ type EpButtonProps = {
 };
 
 const CardButton = styled(ButtonBase)`
-  width: 100%;
+  flex: 1; /* adicione isso */
+  /* width: 100%; */ /* remova ou comente isso */
   height: 84px;
   border-radius: 12px;
   overflow: hidden;
@@ -74,7 +75,7 @@ export const EpNavButton: React.FC<EpButtonProps> = ({
   $align = "left",
   onClick,
 }) => (
-  <CardButton onClick={onClick} focusRipple>
+  <CardButton onClick={onClick} focusRipple >
     <BgArt $image={thumbUrl} $align={$align} />
     <Fade />
     <Content $align={$align}>

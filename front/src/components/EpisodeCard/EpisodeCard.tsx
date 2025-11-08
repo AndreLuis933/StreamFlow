@@ -5,14 +5,11 @@ import { getEpisodeImageUrlBySlug } from "@/utils/images";
 
 type Props = {
   episode: Episode;
-  baseSlug: string;
 };
 
-function EpisodeCard({ episode, baseSlug }: Props) {
+function EpisodeCard({ episode }: Props) {
   return (
-    <Card
-      to={`/watch/${baseSlug}?anime=${episode.anime.slug_serie}&ep=${episode.n_episodio}`}
-    >
+    <Card to={`/watch/${episode.generate_id}`}>
       <Image
         src={getEpisodeImageUrlBySlug(
           episode.anime.slug_serie,

@@ -1,18 +1,13 @@
 import { Box, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-export const Page = styled(Box)(({ theme }) => ({
-  padding: 24,
-  background: "#000",
-  minHeight: "100vh",
-}));
-
 // Container principal do card de anime (hero/capa)
-export const AnimeHero = styled(Box)(({ theme }) => ({
+export const AnimeHeroContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   gap: 32,
   padding: 32,
-  background: "linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(0, 0, 0, 0.8) 100%)",
+  background:
+    "linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(0, 0, 0, 0.8) 100%)",
   backdropFilter: "blur(10px)",
   borderRadius: 12,
   color: "#fff",
@@ -26,7 +21,8 @@ export const AnimeHero = styled(Box)(({ theme }) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)",
     zIndex: 0,
   },
 }));
@@ -201,16 +197,4 @@ export const FavoriteText = styled(Typography)({
   "& svg": {
     fontSize: 18,
   },
-});
-
-// Container da seção de episódios
-export const EpisodesSection = styled(Box)({
-  marginTop: 32,
-});
-
-export const SectionTitle = styled(Typography)({
-  fontSize: 24,
-  fontWeight: 700,
-  color: "#fff",
-  marginBottom: 24,
 });

@@ -10,13 +10,11 @@ const App = () => {
   return (
     <>
       <BrowserRouter>
-        <Analytics />
-        <SpeedInsights />
         <Routes>
           <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
             <Route path="/a/:id" element={<AnimePage />} />
-            <Route path="/watch/:id" element={<PlayerPage />} />
+            <Route path="/watch/:IdEp" element={<PlayerPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

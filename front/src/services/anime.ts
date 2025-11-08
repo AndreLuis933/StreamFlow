@@ -1,5 +1,6 @@
 import axios from "@/lib/axios";
-import type { ApiAnimeResponse, ApiDataResponse } from "@/types/api";
+import type { ApiAnimeResponse, ApiDataResponse, DetalhesEpResponse } from "@/types/api";
+import { parseAnimeResponse } from "@/utils/prosessData";
 
 export async function fetchAnimeBySlug(slug: string, page = 1) {
   const { data } = await axios.get<ApiAnimeResponse>(
@@ -8,20 +9,18 @@ export async function fetchAnimeBySlug(slug: string, page = 1) {
   return data;
 }
 
-type DetalhesResponse = {
-  pageProps: {
-    data: {
-      originaltitulo: string;
-      episodes: number;
-    };
-  };
-};
-
-export async function fetchDetalhesBySlug(slug: string) {
-  const { data } = await axios.get<DetalhesResponse>(
-    `/detalhes?slug=${encodeURIComponent(slug)}`
+export async function fetchDetalhesAnimeBySlug(slug: string) {
+  const { data } = await axios.get(
+    `/detalhes/anime?slug=${encodeURIComponent(slug)}`
   );
-  return data;
+  return parseAnimeResponse(data);
+}
+
+export async function fetchDetalhesEpBySlug(slug: string) {
+  const { data } = await axios.get<DetalhesEpResponse>(
+    `/detalhes/episodio?slug=${encodeURIComponent(slug)}`
+  );
+  return data
 }
 
 export async function fetchAnimeBySearch(search: string) {

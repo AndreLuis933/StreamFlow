@@ -1,97 +1,115 @@
-import { Box, Typography, Skeleton, Alert } from "@mui/material";
+import { Box, Typography, Skeleton, Alert, Stack } from "@mui/material";
 import CardPlayer from "@/components/CardPlayer";
-import { useSearchParams, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { EpNavButton } from "@/components/EpNavButtons";
-import { useMemo } from "react";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
 import { Page, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-type RouteParams = { id: string };
+type RouteParams = { IdEp: string };
 
 export default function PlayerPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { id } = useParams<RouteParams>();
+  const { IdEp } = useParams<RouteParams>();
 
-  const anime = searchParams.get("anime") ?? undefined;
-  const ep = useMemo(() => {
-    const s = searchParams.get("ep");
-    const n = s ? Number(s) : NaN;
-    return Number.isFinite(n) ? n : undefined;
-  }, [searchParams]);
-
-  // Early return se params essenciais estiverem ausentes
-  if (!anime || !ep || !id) {
+  if (!IdEp) {
     return (
       <Page>
         <Alert severity="warning">Parâmetros inválidos na URL.</Alert>
       </Page>
     );
   }
+  const { data, isLoading, error } = usePlayerData(IdEp);
+  if (!data) {
+    return <></>;
+  }
+  const ep = Number(data.n_episodio);
+  const dataPassada = new Date(data.data_registro);
+  const dataAtual = new Date();
+
+  const diferencaEmMs = dataAtual.getTime() - dataPassada.getTime();
+  const diasAtras = Math.floor(diferencaEmMs / (1000 * 60 * 60 * 24));
 
   const m3u8Url = `${API_BASE}/m3u8?nome=${encodeURIComponent(
-    anime
+    data.anime.slug_serie
   )}&ep=${encodeURIComponent(ep)}`;
 
-  const thumb = getEpisodeImageUrlBySlug(anime, ep);
+  const thumb = getEpisodeImageUrlBySlug(data.anime.slug_serie, ep);
 
-  const goTo = (num: number) =>
-    navigate(`/watch/${id}?anime=${encodeURIComponent(anime)}&ep=${num}`);
-
-  const { titulo, temProximo, loading, error } = usePlayerData(id, ep);
+  const goTo = (slug: string) => navigate(`/watch/${slug}`);
 
   return (
     <Page>
-      {loading ? (
+      {isLoading ? (
         <Skeleton variant="rounded" height={540} />
       ) : error ? (
         <Alert severity="error">Falha ao carregar detalhes.</Alert>
       ) : (
         <Box>
-          <CardPlayer src={m3u8Url} thumbnail={thumb} />
-
-          <TitleLink to={`/a/${id}`}>{titulo}</TitleLink>
-
+          <CardPlayer
+            src={m3u8Url}
+            thumbnail={thumb}
+            onVideoEnd={() => {
+              if (data.nextEp && data.nextEp.generate_id)
+                goTo(data.nextEp.generate_id);
+            }}
+          />
           <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
-            Episódio {ep}
+            Postado ha {diasAtras} dias
           </Typography>
 
-          <Box
-            sx={{
-              mt: 2,
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 1.5,
-            }}
-          >
-            {ep > 1 && (
-              <Box
-                sx={{
-                  gridColumn: temProximo ? "auto" : { xs: "1", sm: "1 / -1" },
-                }}
-              >
-                <EpNavButton
-                  label="Anterior"
-                  epNumber={ep - 1}
-                  thumbUrl={getEpisodeImageUrlBySlug(anime, ep - 1)}
-                  $align="left"
-                  onClick={() => goTo(ep - 1)}
-                />
-              </Box>
-            )}
+          <TitleLink to={`/a/${data.anime.generate_id}`}>
+            {data.anime.titulo}
+          </TitleLink>
 
-            {temProximo && (
-              <EpNavButton
-                label="Próximo "
-                epNumber={ep + 1}
-                thumbUrl={getEpisodeImageUrlBySlug(anime, ep + 1)}
-                $align="right"
-                onClick={() => goTo(ep + 1)}
-              />
-            )}
-          </Box>
+          <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
+            Episódio {ep} - {data.titulo_episodio}
+          </Typography>
+
+          <Typography variant="subtitle2" sx={{ mt: 0.5 }}>
+            Sinopse
+          </Typography>
+
+          <Typography variant="subtitle2" sx={{ mt: 0.5 }}>
+            {data.sinopse_episodio}
+          </Typography>
+
+          <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+            {data.prevEp?.generate_id &&
+              (() => {
+                const prevEp = data.prevEp.generate_id;
+                return (
+                  <EpNavButton
+                    label="Anterior "
+                    epNumber={ep - 1}
+                    thumbUrl={getEpisodeImageUrlBySlug(
+                      data.anime.slug_serie,
+                      ep - 1
+                    )}
+                    $align="left"
+                    onClick={() => goTo(prevEp)}
+                  />
+                );
+              })()}
+
+            {data.nextEp?.generate_id &&
+              (() => {
+                const nextEpId = data.nextEp.generate_id;
+                return (
+                  <EpNavButton
+                    label="Próximo "
+                    epNumber={ep + 1}
+                    thumbUrl={getEpisodeImageUrlBySlug(
+                      data.anime.slug_serie,
+                      ep + 1
+                    )}
+                    $align="right"
+                    onClick={() => goTo(nextEpId)}
+                  />
+                );
+              })()}
+          </Stack>
         </Box>
       )}
     </Page>

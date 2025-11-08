@@ -5,10 +5,11 @@ import Hls from "hls.js";
 
 interface CardPlayerProps {
   src: string;
-  thumbnail:string;
+  thumbnail: string;
+  onVideoEnd?: () => void;
 }
 
-const CardPlayer = ({ src, thumbnail }: CardPlayerProps) => {
+const CardPlayer = ({ src, thumbnail, onVideoEnd }: CardPlayerProps) => {
   const plyrRef = useRef<any>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -36,6 +37,44 @@ const CardPlayer = ({ src, thumbnail }: CardPlayerProps) => {
       }
     };
   }, [src]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    const setupEndedListener = () => {
+      const video = plyrRef.current?.plyr?.media;
+
+      if (video && isMounted) {
+        const handleEnded = () => {
+          if (onVideoEnd) {
+            onVideoEnd();
+          }
+        };
+
+        video.addEventListener("ended", handleEnded);
+
+        return () => {
+          video.removeEventListener("ended", handleEnded);
+        };
+      } else if (attempts < maxAttempts && isMounted) {
+        attempts++;
+
+        setTimeout(setupEndedListener, 100);
+      } else if (attempts >= maxAttempts) {
+        console.error(
+          "❌ Não foi possível encontrar o elemento de vídeo após várias tentativas"
+        );
+      }
+    };
+
+    setupEndedListener();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [onVideoEnd]);
 
   return (
     <Plyr

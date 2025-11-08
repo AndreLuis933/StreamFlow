@@ -1,9 +1,9 @@
-import { fetchDetalhesEpBySlug } from "@/services/anime";
 import { useQuery } from "@tanstack/react-query";
+import { fetchDetalhesEpBySlug } from "@/services/anime";
 
-export function usePlayerData(slug?: string) {
+export function useAnimeData(slug?: string) {
   return useQuery({
-    queryKey: ["ep", slug], // Chave única para o cache
+    queryKey: ["anime", slug], // Chave única para o cache
     queryFn: async () => {
       if (!slug) throw new Error("Slug é obrigatório");
       const result = await fetchDetalhesEpBySlug(slug);

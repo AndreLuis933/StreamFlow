@@ -1,8 +1,9 @@
+import re
 import urllib.parse
 from typing import Annotated
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
@@ -25,10 +26,30 @@ FIXED_HEADERS = {
     "Referer": "https://www.api-vidios.net/",
 }
 
+_build_id_cache = None
+
 
 def build_m3u8_url(nome: str, ep: str) -> str:
     ep_norm = ep.zfill(3)
     return f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep_norm}.mp4/media-1/stream.m3u8"
+
+
+async def get_build_id(force_refresh: bool = False) -> str:
+    """Obtém o buildId (com cache)."""
+    global _build_id_cache
+
+    if _build_id_cache and not force_refresh:
+        return _build_id_cache
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.get("https://www.api-vidios.net/", headers=FIXED_HEADERS)
+        match = re.search(r"\/_next\/static\/([A-Za-z0-9_-]+)\/_buildManifest\.js", r.text)
+
+        if match:
+            _build_id_cache = match.group(1)
+            return _build_id_cache
+
+        raise Exception("Não foi possível encontrar o buildId")
 
 
 @app.get("/m3u8")
@@ -105,11 +126,34 @@ async def animes(slug: Annotated[str, Query(...)], page: Annotated[str, Query(..
     return r.json()
 
 
-@app.get("/detalhes")
-async def detalhes(slug: Annotated[str, Query(...)]):
+@app.get("/detalhes/anime")
+async def detalhes_anime(slug: Annotated[str, Query(...)]):
+    """Detalhes de um anime específico."""
+    return await fetch_with_build_id(path=f"/a/{slug}.json", query_param=f"anime={slug}")
+
+
+@app.get("/detalhes/episodio")
+async def detalhes_episodio(slug: Annotated[str, Query(...)]):
+    """Detalhes de um episódio específico."""
+    return await fetch_with_build_id(path=f"/e/{slug}.json", query_param=f"episode={slug}")
+
+
+async def fetch_with_build_id(path: str, query_param: str):
+    """Função auxiliar para fazer requisições com buildId e retry automático."""
+    build_id = await get_build_id()
+
     async with httpx.AsyncClient(timeout=30) as client:
-        r = await client.get(
-            f"https://www.api-vidios.net/_next/data/RWySOXkJe1_j6zQD6H8T_/a/{slug}.json?anime={slug}",
-            headers=FIXED_HEADERS,
-        )
-    return r.json()
+        url = f"https://www.api-vidios.net/_next/data/{build_id}{path}?{query_param}"
+        r = await client.get(url, headers=FIXED_HEADERS)
+
+        # Se der 404, tenta atualizar o buildId e refaz a requisição
+        if r.status_code == 404:
+            build_id = await get_build_id(force_refresh=True)
+            url = f"https://www.api-vidios.net/_next/data/{build_id}{path}?{query_param}"
+            r = await client.get(url, headers=FIXED_HEADERS)
+
+    return Response(content=r.content, status_code=r.status_code, media_type="application/json")
+
+"https://www.api-vidios.net/_next/data/YjhUubNcUkccejKkZDY7R/e/vkBX7Iy3nH.json?episode=vkBX7Iy3nH"
+"https://www.api-vidios.net/_next/data/YjhUubNcUkccejKkZDY7R/a/GTv9jbBjLa.json?anime=GTv9jbBjLa"
+
