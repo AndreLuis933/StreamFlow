@@ -50,6 +50,7 @@ export default function PlayerPage() {
           <CardPlayer
             src={m3u8Url}
             thumbnail={thumb}
+            videoId={IdEp}
             onVideoEnd={() => {
               if (data.nextEp && data.nextEp.generate_id)
                 goTo(data.nextEp.generate_id);
