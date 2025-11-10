@@ -5,6 +5,7 @@ export const Page = styled(Box)(({ theme }) => ({
   padding: 24,
   background: "#000",
   minHeight: "100vh",
+  borderRadius: 10,
 }));
 
 // Container principal do card de anime (hero/capa)
@@ -12,7 +13,8 @@ export const AnimeHero = styled(Box)(({ theme }) => ({
   display: "flex",
   gap: 32,
   padding: 32,
-  background: "linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(0, 0, 0, 0.8) 100%)",
+  background:
+    "linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(0, 0, 0, 0.8) 100%)",
   backdropFilter: "blur(10px)",
   borderRadius: 12,
   color: "#fff",
@@ -26,7 +28,8 @@ export const AnimeHero = styled(Box)(({ theme }) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 100%)",
     zIndex: 0,
   },
 }));

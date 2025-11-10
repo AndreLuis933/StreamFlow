@@ -1,3 +1,4 @@
+// src/pages/AnimePage/AnimePage.tsx
 import { Grid, Box, Skeleton, Alert } from "@mui/material";
 import { useParams } from "react-router-dom";
 import SearchTextField from "@/components/SearchTextField";
@@ -5,13 +6,31 @@ import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
 import AnimeHero from "@/components/AnimeHero/AnimeHero";
 import { useAnimeEpisodes } from "./Anime.hooks";
 import { Page, EpisodesSection, SectionTitle } from "./Anime.styles";
+import { useEffect } from "react";
 
 type RouteParams = { id: string };
 
 export default function AnimePage() {
   const { id } = useParams<RouteParams>();
-  const page = 1;
-  const { episodes, loading, error, data } = useAnimeEpisodes(id, page);
+  const { episodes, loading, error, data, loadMoreEpisodes, hasNextPage } =
+    useAnimeEpisodes(id);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop !==
+        document.documentElement.offsetHeight
+      )
+        return;
+      if (hasNextPage) {
+        loadMoreEpisodes();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasNextPage, loadMoreEpisodes]);
+
   return (
     <Page>
       <Box sx={{ p: 4 }}>
@@ -31,7 +50,7 @@ export default function AnimePage() {
         />
       )}
 
-      {loading && (
+      {loading && episodes.length === 0 && (
         <Box sx={{ mb: 4 }}>
           <Skeleton variant="rounded" height={350} />
         </Box>
@@ -43,17 +62,18 @@ export default function AnimePage() {
       <EpisodesSection>
         <SectionTitle>Episódios</SectionTitle>
         <Grid container spacing={2}>
-          {loading
-            ? Array.from({ length: 12 }).map((_, i) => (
-                <Grid key={i} size={2}>
-                  <Skeleton variant="rounded" height={180} />
-                </Grid>
-              ))
-            : episodes.map((e) => (
-                <Grid key={e.id_series_episodios} size={2}>
-                  <EpisodeCard episode={e} />
-                </Grid>
-              ))}
+          {episodes.map((e) => (
+            <Grid key={e.id_series_episodios} size={2}>
+              <EpisodeCard episode={e} />
+            </Grid>
+          ))}
+          {loading &&
+            episodes.length > 0 &&
+            Array.from({ length: 12 }).map((_, i) => (
+              <Grid key={i} size={2}>
+                <Skeleton variant="rounded" height={180} />
+              </Grid>
+            ))}
         </Grid>
       </EpisodesSection>
     </Page>

@@ -1,5 +1,6 @@
 import re
 import urllib.parse
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 import httpx
@@ -7,7 +8,18 @@ from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global client
+    client = httpx.AsyncClient(
+        follow_redirects=True, timeout=60, limits=httpx.Limits(max_keepalive_connections=20, max_connections=50)
+    )
+    yield
+    await client.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,6 +32,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+client = None
+
 
 FIXED_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -84,29 +99,26 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
     return PlainTextResponse(
         rewritten,
         media_type="application/vnd.apple.mpegurl",
-        headers={"Cache-Control": "no-store"},
+        headers={"Cache-Control": "public, max-age=86400"},
     )
 
 
 @app.get("/seg")
 async def proxy_segment(u: Annotated[str, Query(...)]):
-    """Proxy de segmentos (.ts/.m4s/.aac...):
-    - Busca o segmento com headers fixos
-    - Faz stream dos bytes para o cliente.
-    """
     url = urllib.parse.unquote(u)
 
     async def gen():
-        async with (
-            httpx.AsyncClient(follow_redirects=True, timeout=60) as client,
-            client.stream("GET", url, headers=FIXED_HEADERS) as r,
-        ):
+        async with client.stream("GET", url, headers=FIXED_HEADERS) as r:
             if r.status_code != 200:
                 raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
-            async for chunk in r.aiter_bytes(64 * 1024):
+            async for chunk in r.aiter_bytes(128 * 1024):
                 yield chunk
 
-    return StreamingResponse(gen(), media_type="video/MP2T", headers={"Cache-Control": "no-store"})
+    return StreamingResponse(
+        gen(),
+        media_type="video/MP2T",
+        headers={"Cache-Control": "public, max-age=240"},
+    )
 
 
 @app.get("/data")
@@ -153,7 +165,3 @@ async def fetch_with_build_id(path: str, query_param: str):
             r = await client.get(url, headers=FIXED_HEADERS)
 
     return Response(content=r.content, status_code=r.status_code, media_type="application/json")
-
-"https://www.api-vidios.net/_next/data/YjhUubNcUkccejKkZDY7R/e/vkBX7Iy3nH.json?episode=vkBX7Iy3nH"
-"https://www.api-vidios.net/_next/data/YjhUubNcUkccejKkZDY7R/a/GTv9jbBjLa.json?anime=GTv9jbBjLa"
-
