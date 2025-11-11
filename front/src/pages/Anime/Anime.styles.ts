@@ -1,7 +1,7 @@
 import { Box, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-export const Page = styled(Box)(({ theme }) => ({
+export const Page = styled(Box)(() => ({
   padding: 24,
   background: "#000",
   minHeight: "100vh",
@@ -9,7 +9,7 @@ export const Page = styled(Box)(({ theme }) => ({
 }));
 
 // Container principal do card de anime (hero/capa)
-export const AnimeHero = styled(Box)(({ theme }) => ({
+export const AnimeHero = styled(Box)(() => ({
   display: "flex",
   gap: 32,
   padding: 32,

@@ -10,6 +10,8 @@ const App = () => {
   return (
     <>
       <BrowserRouter>
+        <Analytics />
+        <SpeedInsights />
         <Routes>
           <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
