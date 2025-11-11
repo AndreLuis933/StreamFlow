@@ -1,3 +1,4 @@
+import json
 import re
 import urllib.parse
 from contextlib import asynccontextmanager
@@ -135,7 +136,11 @@ async def animes(slug: Annotated[str, Query(...)], page: Annotated[str, Query(..
             f"https://apiv3-prd.api-vidios.net/animes/{slug}/episodes?page={page}&order=desc",
             headers=FIXED_HEADERS,
         )
-    return r.json()
+    return Response(
+        json.dumps(r.json()),
+        media_type="application/json",
+        headers={"Cache-Control": "public, max-age=36000"},
+    )
 
 
 @app.get("/detalhes/anime")
