@@ -2,8 +2,7 @@ import io
 
 import librosa
 import soundfile as sf
-
-from ..config.config import (
+from src.config.config import (
     DT_BUCKET_MS,
     FAN_VALUE,
     GAP_THRESHOLD_S,
@@ -14,7 +13,7 @@ from ..config.config import (
     PEAK_NEIGHBORHOOD_SIZE,
     SR_TARGET,
 )
-from ..firebase.firebase_save import save_to_firebase_hash, save_to_firebase_intro
+from src.firebase.firebase_save import save_to_firebase_hash, save_to_firebase_intro
 
 from .fingerprint import fingerprint_audio_array, fingerprint_file
 from .matcher import build_hash_map, match_fingerprints_and_estimate_duration, match_hashes_find_timing
@@ -24,7 +23,7 @@ def detect_and_save_segment_and_hashes(
     ref_data: bytes,
     query_data: bytes,
     anime,
-    out_audio_path: str = "intro.wav",
+    out_audio_path: str,
 ):
     ref_hashes, ref_y, ref_sr = fingerprint_file(
         ref_data,
@@ -70,8 +69,8 @@ def detect_and_save_segment_and_hashes(
     if segment.size == 0:
         print("Segmento extraído vazio — abortando.")
         return None
-
-    sf.write(out_audio_path, segment, ref_sr)
+    if out_audio_path:
+        sf.write(out_audio_path, segment, ref_sr)
     seg_hashes = fingerprint_audio_array(
         segment,
         ref_sr,

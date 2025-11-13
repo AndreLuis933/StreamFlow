@@ -41,8 +41,20 @@ export const useHlsPlayer = ({
         setTimeout(() => onManifestParsed(video), 100);
       });
 
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        console.error("HLS Error:", data);
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad(); // tentar novamente
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+            // exibir fallback UI, mensagem de erro amigável, etc.
+          }
+        }
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       // Fallback para navegadores que suportam HLS nativamente (Safari)

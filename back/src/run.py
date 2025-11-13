@@ -47,6 +47,7 @@ if __name__ == "__main__":
     result = asyncio.run(find_intro_request("one-piece", "1149"))
     fim = perf_counter()
     print(fim - inicio)
+    "intro.wav"
     # url_video = f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/one-piece/1159.mp4/media-1/stream.m3u8"
     # audio_bytes = asyncio.run(baixar_hls_e_retorna_audio(url_video, start_sec=0, duration_sec=180))
     # print(audio_bytes)

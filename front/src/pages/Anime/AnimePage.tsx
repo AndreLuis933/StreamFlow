@@ -1,38 +1,19 @@
-// src/pages/AnimePage/AnimePage.tsx
 import { Grid, Box, Skeleton, Alert } from "@mui/material";
 import { useParams } from "react-router-dom";
 import SearchTextField from "@/components/SearchTextField";
 import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
 import AnimeHero from "@/components/AnimeHero/AnimeHero";
 import { useAnimeEpisodes } from "./Anime.hooks";
-import { Page, EpisodesSection, SectionTitle } from "./Anime.styles";
-import { useEffect } from "react";
+import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
 
 type RouteParams = { id: string };
 
 export default function AnimePage() {
   const { id } = useParams<RouteParams>();
-  const { episodes, loading, error, data, loadMoreEpisodes, hasNextPage } =
-    useAnimeEpisodes(id);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop !==
-        document.documentElement.offsetHeight
-      )
-        return;
-      if (hasNextPage) {
-        loadMoreEpisodes();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasNextPage, loadMoreEpisodes]);
+  const { episodes, loading, error, data } = useAnimeEpisodes(id);
 
   return (
-    <Page>
+    <>
       <Box sx={{ p: 4 }}>
         <SearchTextField />
       </Box>
@@ -76,6 +57,6 @@ export default function AnimePage() {
             ))}
         </Grid>
       </EpisodesSection>
-    </Page>
+    </>
   );
 }

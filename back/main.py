@@ -8,7 +8,6 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
-
 from src.run import find_intro_request
 
 
@@ -27,11 +26,9 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
         "*",
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -102,7 +99,11 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
     return PlainTextResponse(
         rewritten,
         media_type="application/vnd.apple.mpegurl",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",  # ou "*", se sem credenciais
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        },
     )
 
 
@@ -120,7 +121,11 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
     return StreamingResponse(
         gen(),
         media_type="video/MP2T",
-        headers={"Cache-Control": "public, max-age=240"},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",  # ou "*", se sem credenciais
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        },
     )
 
 @app.get("/intro")

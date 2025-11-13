@@ -19,9 +19,10 @@ export function useAnimeEpisodes(slug?: string) {
       return result.pageProps.data;
     },
     enabled: !!slug,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 
+  // funçao para carregar mais
   const loadMoreEpisodes = useCallback(async () => {
     if (!slug || !hasNextPage || loading) return;
     setLoading(true);
@@ -38,6 +39,7 @@ export function useAnimeEpisodes(slug?: string) {
     }
   }, [slug, page, hasNextPage, loading]);
 
+  //primeira busca
   useEffect(() => {
     let active = true;
     async function run() {
@@ -63,5 +65,22 @@ export function useAnimeEpisodes(slug?: string) {
     };
   }, [slug]);
 
-  return { episodes, loading, error, data, loadMoreEpisodes, hasNextPage };
+  // carregar mais com o scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop !==
+        document.documentElement.offsetHeight
+      )
+        return;
+      if (hasNextPage) {
+        loadMoreEpisodes();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasNextPage, loadMoreEpisodes]);
+
+  return { episodes, loading, error, data };
 }

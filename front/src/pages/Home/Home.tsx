@@ -1,9 +1,8 @@
-// src/pages/AnimePage/AnimePage.tsx
 import { Grid, Box, Skeleton } from "@mui/material";
 import SearchTextField from "@/components/SearchTextField";
 import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
+import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
 
-import { EpisodesSection, Page, SectionTitle } from "../Anime/Anime.styles";
 import { useEpisodesFetcher } from "@/hooks/useEpisodesFetcher";
 
 const slugs = [
@@ -17,7 +16,7 @@ export default function Home() {
   const { episodes, loading } = useEpisodesFetcher({ slugs });
 
   return (
-    <Page>
+    <>
       <Box sx={{ p: 4 }}>
         <SearchTextField />
       </Box>
@@ -39,6 +38,6 @@ export default function Home() {
             ))}
         </Grid>
       </EpisodesSection>
-    </Page>
+    </>
   );
 }

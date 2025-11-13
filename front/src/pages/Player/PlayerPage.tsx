@@ -1,12 +1,11 @@
 import { Box, Typography, Skeleton, Alert, Stack } from "@mui/material";
-import CardPlayer from "@/components/CardPlayer";
+import CardPlayer from "@/components/CardPlayer/CardPlayer";
 import { useNavigate, useParams } from "react-router-dom";
 import { EpNavButton } from "@/components/EpNavButtons";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
 import { Page, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
-import { fetchIntroDuration } from "@/services/anime";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 
 type RouteParams = { IdEp: string };
 
@@ -32,9 +31,7 @@ export default function PlayerPage() {
   const diferencaEmMs = dataAtual.getTime() - dataPassada.getTime();
   const diasAtras = Math.floor(diferencaEmMs / (1000 * 60 * 60 * 24));
 
-  const m3u8Url = `${API_BASE}/m3u8?nome=${encodeURIComponent(
-    data.anime.slug_serie
-  )}&ep=${encodeURIComponent(ep)}`;
+
 
   const thumb = getEpisodeImageUrlBySlug(data.anime.slug_serie, ep);
 
@@ -49,7 +46,6 @@ export default function PlayerPage() {
       ) : (
         <Box>
           <CardPlayer
-            src={m3u8Url}
             thumbnail={thumb}
             videoId={IdEp}
             nome={data.anime.slug_serie}

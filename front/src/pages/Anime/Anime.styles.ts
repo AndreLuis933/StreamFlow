@@ -1,13 +1,6 @@
 import { Box, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-export const Page = styled(Box)(() => ({
-  padding: 24,
-  background: "#000",
-  minHeight: "100vh",
-  borderRadius: 10,
-}));
-
 // Container principal do card de anime (hero/capa)
 export const AnimeHero = styled(Box)(() => ({
   display: "flex",
@@ -204,16 +197,4 @@ export const FavoriteText = styled(Typography)({
   "& svg": {
     fontSize: 18,
   },
-});
-
-// Container da seção de episódios
-export const EpisodesSection = styled(Box)({
-  marginTop: 32,
-});
-
-export const SectionTitle = styled(Typography)({
-  fontSize: 24,
-  fontWeight: 700,
-  color: "#fff",
-  marginBottom: 24,
 });
