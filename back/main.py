@@ -9,6 +9,8 @@ from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
+from src.run import find_intro_request
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -120,6 +122,10 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
         media_type="video/MP2T",
         headers={"Cache-Control": "public, max-age=240"},
     )
+
+@app.get("/intro")
+async def get_intro(anime: Annotated[str, Query(...)],ep: Annotated[str, Query(...)]):
+    return await find_intro_request(anime, ep)
 
 
 @app.get("/data")

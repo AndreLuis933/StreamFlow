@@ -5,6 +5,7 @@ import { EpNavButton } from "@/components/EpNavButtons";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
 import { Page, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
+import { fetchIntroDuration } from "@/services/anime";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 type RouteParams = { IdEp: string };
@@ -51,6 +52,8 @@ export default function PlayerPage() {
             src={m3u8Url}
             thumbnail={thumb}
             videoId={IdEp}
+            nome={data.anime.slug_serie}
+            ep={data.n_episodio}
             onVideoEnd={() => {
               if (data.nextEp && data.nextEp.generate_id)
                 goTo(data.nextEp.generate_id);

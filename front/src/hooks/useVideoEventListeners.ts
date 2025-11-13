@@ -1,5 +1,6 @@
 // hooks/useVideoEventListeners.ts
-import { useEffect } from "react";
+import { fetchIntroDuration } from "@/services/anime";
+import { useEffect, useRef } from "react"; // Importe useRef
 
 interface UseVideoEventListenersProps {
   plyrRef: React.MutableRefObject<any>;
@@ -8,6 +9,8 @@ interface UseVideoEventListenersProps {
   saveProgress: (currentTime: number) => void;
   clearProgress: () => void;
   restoreProgress: (video: HTMLVideoElement) => void;
+  nome: string;
+  ep: string;
 }
 
 export const useVideoEventListeners = ({
@@ -17,7 +20,17 @@ export const useVideoEventListeners = ({
   saveProgress,
   clearProgress,
   restoreProgress,
+  nome,
+  ep,
 }: UseVideoEventListenersProps) => {
+  // Usar um ref para o botão para que possamos acessá-lo no timeupdate
+  const customButtonRef = useRef<HTMLButtonElement | null>(null);
+  // Usar um ref para a duração da intro para que ela persista entre re-renders
+  const introDurationRef = useRef<{
+    start_sec: number;
+    end_sec: number;
+  } | null>(null);
+
   useEffect(() => {
     let isMounted = true;
     let attempts = 0;
@@ -26,8 +39,9 @@ export const useVideoEventListeners = ({
 
     const setupListeners = () => {
       const video = plyrRef.current?.plyr?.media;
+      const player = plyrRef.current?.plyr;
 
-      if (video && isMounted) {
+      if (video && player && isMounted) {
         // Restauraçao de progress
         const handleLoadedMetadata = () => {
           restoreProgress(video);
@@ -40,7 +54,6 @@ export const useVideoEventListeners = ({
 
         // Iniciar salvamento periódico do progresso
         const startSaving = () => {
-          // Usar intervalo ao invés de timeupdate para melhor performance
           saveInterval = setInterval(() => {
             if (!video.paused && !video.ended && video.currentTime > 0) {
               saveProgress(video.currentTime);
@@ -70,24 +83,87 @@ export const useVideoEventListeners = ({
           }
         };
 
+        // --- Nova abordagem para o botão ---
+        async function initializeCustomButton() {
+          const duracao = await fetchIntroDuration(nome, ep);
+          introDurationRef.current = duracao; // Armazena a duração no ref
+
+          const container = player.elements.container;
+          if (!container) return;
+
+          // Cria o botão apenas se ele ainda não existir
+          if (!customButtonRef.current) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "custom-center-button";
+            btn.setAttribute("aria-label", "Custom Center Button");
+            btn.textContent = "Pular Abertura";
+            btn.style.display = "none"; // Começa oculto
+
+            btn.addEventListener("click", () => {
+              if (introDurationRef.current) {
+                player.currentTime = introDurationRef.current.end_sec;
+              }
+            });
+            container.appendChild(btn);
+            customButtonRef.current = btn; // Armazena a referência do botão
+          }
+        }
+
+        // Handler do timeupdate que usa os refs
+        const handleTimeUpdate = () => {
+          const currentTime = video.currentTime;
+          const duracao = introDurationRef.current;
+          const btn = customButtonRef.current;
+
+          if (duracao && btn) {
+            if (
+              currentTime >= duracao.start_sec &&
+              currentTime <= duracao.end_sec
+            ) {
+              btn.style.display = "block";
+            } else {
+              btn.style.display = "none";
+            }
+          }
+        };
+        // --- Fim da nova abordagem ---
+
+        // Inicializa o botão e busca a duração
+        if (player.ready) {
+          initializeCustomButton();
+        } else {
+          player.on("ready", initializeCustomButton);
+        }
+
         window.addEventListener("keydown", handleKeyDown);
 
         video.addEventListener("loadedmetadata", handleLoadedMetadata);
         video.addEventListener("canplay", handleCanPlay);
         video.addEventListener("play", startSaving);
         video.addEventListener("pause", handlePause);
+        video.addEventListener("timeupdate", handleTimeUpdate); // Adiciona o listener aqui
 
         return () => {
+          // Cleanup para todos os listeners
           video.removeEventListener("loadedmetadata", handleLoadedMetadata);
           video.removeEventListener("canplay", handleCanPlay);
           video.removeEventListener("pause", handlePause);
           video.removeEventListener("play", startSaving);
+          video.removeEventListener("timeupdate", handleTimeUpdate); // Remove o listener aqui
 
           window.removeEventListener("keydown", handleKeyDown);
           if (saveInterval) clearInterval(saveInterval);
+
+          // Opcional: remover o botão do DOM quando o componente desmontar
+          if (customButtonRef.current && customButtonRef.current.parentNode) {
+            customButtonRef.current.parentNode.removeChild(
+              customButtonRef.current
+            );
+            customButtonRef.current = null;
+          }
         };
       } else if (attempts < maxAttempts && isMounted) {
-        // Retry logic para garantir que os listeners sejam configurados
         attempts++;
         setTimeout(setupListeners, 100);
       }
@@ -96,7 +172,6 @@ export const useVideoEventListeners = ({
     setupListeners();
 
     return () => {
-      // Prevenir memory leaks e operações após unmount
       isMounted = false;
       if (saveInterval) clearInterval(saveInterval);
     };
@@ -107,5 +182,7 @@ export const useVideoEventListeners = ({
     saveProgress,
     clearProgress,
     restoreProgress,
+    nome,
+    ep,
   ]);
 };

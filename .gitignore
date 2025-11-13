@@ -23,6 +23,8 @@ node_modules
 dist
 dist-ssr
 *.local
+*.json
+*.wav
 
 # Editor directories and files
 .vscode/*

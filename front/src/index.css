@@ -1,0 +1,6 @@
+/* Quando o container estiver em fullscreen, o botão fica fixo na viewport */
+.fullscreen .skip-intro-button {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+}

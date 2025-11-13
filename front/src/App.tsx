@@ -7,11 +7,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const App = () => {
+  const isProd = process.env.NODE_ENV === "production";
   return (
     <>
       <BrowserRouter>
-        <Analytics />
-        <SpeedInsights />
+        {isProd && <Analytics />}
+        {isProd && <SpeedInsights />}
         <Routes>
           <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
