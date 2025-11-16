@@ -3,12 +3,13 @@ import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
 import { setupHlsPlayer } from "@/hooks/setupHlsPlayer";
-import { fetchIntroDuration } from "@/services/anime";
+import { fetchIntroDuration, fetchCreditsDuration } from "@/services/anime";
 import "./button.css";
 import { waitForPlayer } from "@/utils/waitForPlayer";
 import { attachVideoListeners } from "@/hooks/listeners/videoListeners";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
 import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
+import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -32,8 +33,13 @@ const CardPlayer = ({
     nome
   )}&ep=${encodeURIComponent(ep)}`;
 
-  const customButtonRef = useRef<HTMLButtonElement | null>(null);
+  const introButtonRef = useRef<HTMLButtonElement | null>(null);
   const introDurationRef = useRef<{
+    start_sec: number;
+    end_sec: number;
+  } | null>(null);
+  const creditsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const creditsDurationRef = useRef<{
     start_sec: number;
     end_sec: number;
   } | null>(null);
@@ -74,8 +80,22 @@ const CardPlayer = ({
         fetchIntroDuration,
         nome,
         ep,
-        customButtonRef,
+        introButtonRef,
         introDurationRef,
+      });
+    });
+  }, [videoId]);
+
+  useEffect(() => {
+    return waitForPlayer(plyrRef, (player, video) => {
+      return attachCreditsButton({
+        player,
+        video,
+        fetchCreditsDuration,
+        nome,
+        ep,
+        creditsButtonRef,
+        creditsDurationRef,
       });
     });
   }, [videoId]);

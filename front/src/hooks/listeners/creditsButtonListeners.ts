@@ -1,18 +1,18 @@
-// hooks/listeners/introButtonListeners.ts
+// hooks/listeners/creditsButtonListeners.ts
 import type { CleanupFn } from "./videoListeners";
 import { attachSkipSegmentButton } from "./skipSegmentButtonListener";
 
-export function attachIntroButton(params: {
+export function attachCreditsButton(params: {
   player: any;
   video: HTMLVideoElement;
-  fetchIntroDuration: (
+  fetchCreditsDuration: (
     nome: string,
     ep: string
   ) => Promise<{ start_sec: number; end_sec: number }|null>;
   nome: string;
   ep: string;
-  introButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
-  introDurationRef: React.MutableRefObject<{
+  creditsButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
+  creditsDurationRef: React.MutableRefObject<{
     start_sec: number;
     end_sec: number;
   } | null>;
@@ -20,21 +20,21 @@ export function attachIntroButton(params: {
   const {
     player,
     video,
-    fetchIntroDuration,
+    fetchCreditsDuration,
     nome,
     ep,
-    introButtonRef,
-    introDurationRef,
+    creditsButtonRef,
+    creditsDurationRef,
   } = params;
 
   return attachSkipSegmentButton({
     player,
     video,
-    fetchSegmentDuration: fetchIntroDuration,
+    fetchSegmentDuration: fetchCreditsDuration,
     nome,
     ep,
-    buttonRef: introButtonRef,
-    segmentDurationRef: introDurationRef,
-    label: "Pular Abertura",
+    buttonRef: creditsButtonRef,
+    segmentDurationRef: creditsDurationRef,
+    label: "Pular Créditos",
   });
 }

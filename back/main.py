@@ -8,7 +8,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
-from src.run import find_intro_request
+from src.run import find_seguement_request
 
 
 @asynccontextmanager
@@ -122,8 +122,11 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
 
 @app.get("/intro")
 async def get_intro(anime: Annotated[str, Query(...)],ep: Annotated[str, Query(...)]):
-    return await find_intro_request(anime, ep)
+    return await find_seguement_request(anime, ep, "intro")
 
+@app.get("/credits")
+async def get_credits(anime: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
+    return await find_seguement_request(anime, ep, "credits")
 
 @app.get("/data")
 async def search(q: Annotated[str, Query(...)]):

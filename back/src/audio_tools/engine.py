@@ -13,7 +13,7 @@ from src.config.config import (
     PEAK_NEIGHBORHOOD_SIZE,
     SR_TARGET,
 )
-from src.firebase.firebase_save import save_to_firebase_hash, save_to_firebase_intro
+from src.firebase.firebase_save import save_to_firebase_hash, save_to_firebase_result
 
 from .fingerprint import fingerprint_audio_array, fingerprint_file
 from .matcher import build_hash_map, match_fingerprints_and_estimate_duration, match_hashes_find_timing
@@ -24,6 +24,7 @@ def detect_and_save_segment_and_hashes(
     query_data: bytes,
     anime,
     eps,
+    type_,
     out_audio_path=None,
 ):
     ref_hashes, ref_y, ref_sr = fingerprint_file(
@@ -86,11 +87,11 @@ def detect_and_save_segment_and_hashes(
     )
 
     map_h = build_hash_map(seg_hashes)
-    save_to_firebase_hash(map_h, anime, eps)
+    save_to_firebase_hash(map_h, anime, eps, type_)
     return map_h
 
 
-def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime: str, ep: str):
+def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime: str, ep: str, type_, start_duration):
     y, sr = librosa.load(io.BytesIO(audio_data), sr=SR_TARGET, mono=True)
     target_hashes = fingerprint_audio_array(
         y,
@@ -116,7 +117,7 @@ def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime: str, ep: str
     if duration < MIN_DURATION_SEC:
         print(f"Duração estimada da comparaçao do hash com o atual muito curta ({duration:.2f}s)")
         return None
-
-    save_to_firebase_intro(result, anime, ep)
+    result = {k: v + start_duration for k, v in result.items()}
+    save_to_firebase_result(result, anime, ep, type_)
 
     return result

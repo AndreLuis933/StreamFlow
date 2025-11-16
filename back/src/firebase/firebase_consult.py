@@ -2,7 +2,7 @@ from google.cloud.firestore_v1 import FieldFilter
 from src.config.firebase import db
 
 
-def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, janela: int = 30):
+def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, type_, janela: int = 30):
     ep_min = episodio_alvo - janela
     ep_max = episodio_alvo + janela
 
@@ -11,6 +11,7 @@ def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, janela: int = 30
     query = (
         hashes_ref.where(filter=FieldFilter("episodio_base", ">=", ep_min))
         .where(filter=FieldFilter("episodio_base", "<=", ep_max))
+        #.where(filter=FieldFilter("type", "==", type_))
         .order_by("episodio_base")
     )
 
@@ -36,8 +37,8 @@ def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, janela: int = 30
     return candidatos
 
 
-def consult_intro(nome, ep):
-    doc_ref = db.collection("animes").document(nome).collection("intro").document(ep)
+def consult_seguement(nome, ep, type_):
+    doc_ref = db.collection("animes").document(nome).collection(type_).document(ep)
     doc = doc_ref.get()
     if doc.exists:
         return doc.to_dict()

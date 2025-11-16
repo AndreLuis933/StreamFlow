@@ -40,8 +40,16 @@ interface Response {
 }
 
 export async function fetchIntroDuration(anime: string, ep: string) {
-  const { data } = await axios.get<Response>(
+  const { data } = await axios.get<Response | null>(
     `intro?anime=${encodeURIComponent(anime)}&ep=${ep}`,
+    { timeout: 60000 }
+  );
+  return data;
+}
+
+export async function fetchCreditsDuration(anime: string, ep: string) {
+  const { data } = await axios.get<Response | null>(
+    `credits?anime=${encodeURIComponent(anime)}&ep=${ep}`,
     { timeout: 60000 }
   );
   return data;

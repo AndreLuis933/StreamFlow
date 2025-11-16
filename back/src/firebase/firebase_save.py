@@ -4,11 +4,10 @@ import time
 import zlib
 
 from firebase_admin import firestore
+from src.config.firebase import db
 
-from ..config.firebase import db
 
-
-def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base):
+def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):
     episodio_base = int(episodio_base)  # garante que é número
 
     fingerprint_json = json.dumps(fingerprint)
@@ -19,8 +18,9 @@ def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base):
     doc_id = f"hash_{episodio_base}_{timestamp}"
 
     doc_data = {
+        "type": type_,
         "fingerprint_data": encoded,
-        "episodio_base": episodio_base,  # agora int
+        "episodio_base": episodio_base,
         "valido_de": episodio_base,
         "valido_ate": episodio_base,
         "usos_confirmados": [episodio_base],
@@ -63,7 +63,8 @@ def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
 
     print(f"✓ Hash atualizado: intervalo [{valido_de}-{valido_ate}], usos: {usos}")
 
-def save_to_firebase_intro(fingerprint, nome, ep):
-    doc_ref = db.collection("animes").document(nome).collection("intro")
+
+def save_to_firebase_result(fingerprint, nome, ep, type_):
+    doc_ref = db.collection("animes").document(nome).collection(type_)
 
     doc_ref.document(ep).set(fingerprint)
