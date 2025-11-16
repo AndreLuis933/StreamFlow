@@ -99,7 +99,7 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
     return PlainTextResponse(
         rewritten,
         media_type="application/vnd.apple.mpegurl",
-        headers={"Cache-Control": "public, max-age=36000"},
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
     )
 
 
@@ -117,16 +117,19 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
     return StreamingResponse(
         gen(),
         media_type="video/MP2T",
-        headers={"Cache-Control": "public, max-age=300"},
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
     )
 
+
 @app.get("/intro")
-async def get_intro(anime: Annotated[str, Query(...)],ep: Annotated[str, Query(...)]):
+async def get_intro(anime: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
     return await find_seguement_request(anime, ep, "intro")
+
 
 @app.get("/credits")
 async def get_credits(anime: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
     return await find_seguement_request(anime, ep, "credits")
+
 
 @app.get("/data")
 async def search(q: Annotated[str, Query(...)]):

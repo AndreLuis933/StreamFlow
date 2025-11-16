@@ -15,6 +15,7 @@ export function attachSkipSegmentButton({
   buttonRef,
   segmentDurationRef,
   label,
+  onClick,
 }: {
   player: any; // Plyr instance
   video: HTMLVideoElement;
@@ -27,6 +28,7 @@ export function attachSkipSegmentButton({
     end_sec: number;
   } | null>;
   label: string;
+  onClick:()=>void;
 }): CleanupFn {
   async function initializeCustomButton() {
     const duracao = await fetchSegmentDuration(nome, ep);
@@ -45,9 +47,7 @@ export function attachSkipSegmentButton({
       btn.style.display = "none";
 
       btn.addEventListener("click", () => {
-        if (segmentDurationRef.current) {
-          player.currentTime = segmentDurationRef.current.end_sec;
-        }
+        onClick();
       });
 
       container.appendChild(btn);

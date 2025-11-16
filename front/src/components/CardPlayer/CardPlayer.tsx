@@ -60,11 +60,11 @@ const CardPlayer = ({
     [getProgress, hasRestoredProgress]
   );
 
-  useEffect(() => {
-    return waitForPlayer(plyrRef, (_, video) => {
-      return attachVideoListeners({ video, saveProgress, restoreProgress });
-    });
-  }, [saveProgress, restoreProgress]);
+  // useEffect(() => {
+  //   return waitForPlayer(plyrRef, (_, video) => {
+  //     return attachVideoListeners({ video, saveProgress, restoreProgress });
+  //   });
+  // }, [videoId]);
 
   useEffect(() => {
     return waitForPlayer(plyrRef, () => {
@@ -96,6 +96,7 @@ const CardPlayer = ({
         ep,
         creditsButtonRef,
         creditsDurationRef,
+        onVideoEnd,
       });
     });
   }, [videoId]);

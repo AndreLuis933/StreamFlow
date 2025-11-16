@@ -8,7 +8,7 @@ export function attachCreditsButton(params: {
   fetchCreditsDuration: (
     nome: string,
     ep: string
-  ) => Promise<{ start_sec: number; end_sec: number }|null>;
+  ) => Promise<{ start_sec: number; end_sec: number } | null>;
   nome: string;
   ep: string;
   creditsButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
@@ -16,6 +16,7 @@ export function attachCreditsButton(params: {
     start_sec: number;
     end_sec: number;
   } | null>;
+  onVideoEnd: () => void;
 }): CleanupFn {
   const {
     player,
@@ -25,7 +26,20 @@ export function attachCreditsButton(params: {
     ep,
     creditsButtonRef,
     creditsDurationRef,
+    onVideoEnd,
   } = params;
+  function onClick() {
+    if (
+      creditsDurationRef.current
+    ) {
+      if (player.duration - creditsDurationRef.current.end_sec <= 30) {
+        player.currentTime = creditsDurationRef.current.end_sec;
+        onVideoEnd();
+      } else {
+        player.currentTime = creditsDurationRef.current.end_sec;
+      }
+    }
+  }
 
   return attachSkipSegmentButton({
     player,
@@ -36,5 +50,6 @@ export function attachCreditsButton(params: {
     buttonRef: creditsButtonRef,
     segmentDurationRef: creditsDurationRef,
     label: "Pular Créditos",
+    onClick,
   });
 }

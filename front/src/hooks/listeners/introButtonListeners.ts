@@ -8,7 +8,7 @@ export function attachIntroButton(params: {
   fetchIntroDuration: (
     nome: string,
     ep: string
-  ) => Promise<{ start_sec: number; end_sec: number }|null>;
+  ) => Promise<{ start_sec: number; end_sec: number } | null>;
   nome: string;
   ep: string;
   introButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
@@ -26,7 +26,12 @@ export function attachIntroButton(params: {
     introButtonRef,
     introDurationRef,
   } = params;
-
+  
+  function onClick() {
+    if (introDurationRef.current) {
+      player.currentTime = introDurationRef.current.end_sec;
+    }
+  }
   return attachSkipSegmentButton({
     player,
     video,
@@ -36,5 +41,6 @@ export function attachIntroButton(params: {
     buttonRef: introButtonRef,
     segmentDurationRef: introDurationRef,
     label: "Pular Abertura",
+    onClick,
   });
 }
