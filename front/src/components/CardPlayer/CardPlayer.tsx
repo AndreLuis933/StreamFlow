@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect } from "react";
 import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
@@ -6,7 +6,6 @@ import { setupHlsPlayer } from "@/hooks/setupHlsPlayer";
 import { fetchIntroDuration, fetchCreditsDuration } from "@/services/anime";
 import "./button.css";
 import { waitForPlayer } from "@/utils/waitForPlayer";
-import { attachVideoListeners } from "@/hooks/listeners/videoListeners";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
 import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
@@ -44,21 +43,21 @@ const CardPlayer = ({
     end_sec: number;
   } | null>(null);
 
-  const { saveProgress, getProgress, hasRestoredProgress } =
+  const {  hasRestoredProgress } =
     useVideoProgress(videoId);
 
-  const restoreProgress = useCallback(
-    (video: HTMLVideoElement) => {
-      if (hasRestoredProgress.current) return;
+  // const restoreProgress = useCallback(
+  //   (video: HTMLVideoElement) => {
+  //     if (hasRestoredProgress.current) return;
 
-      const savedTime = getProgress();
-      if (savedTime > 0 && video.duration) {
-        video.currentTime = savedTime;
-        hasRestoredProgress.current = true;
-      }
-    },
-    [getProgress, hasRestoredProgress]
-  );
+  //     const savedTime = getProgress();
+  //     if (savedTime > 0 && video.duration) {
+  //       video.currentTime = savedTime;
+  //       hasRestoredProgress.current = true;
+  //     }
+  //   },
+  //   [getProgress, hasRestoredProgress]
+  // );
 
   // useEffect(() => {
   //   return waitForPlayer(plyrRef, (_, video) => {
