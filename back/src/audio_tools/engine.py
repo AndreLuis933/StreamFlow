@@ -23,7 +23,8 @@ def detect_and_save_segment_and_hashes(
     ref_data: bytes,
     query_data: bytes,
     anime,
-    out_audio_path: str,
+    eps,
+    out_audio_path=None,
 ):
     ref_hashes, ref_y, ref_sr = fingerprint_file(
         ref_data,
@@ -58,8 +59,9 @@ def detect_and_save_segment_and_hashes(
 
     duration = match_res["duration_est_sec"]
     start_stored = match_res["start_stored_sec"]
+
     if duration < MIN_DURATION_SEC:
-        print(f"Duração estimada muito curta ({duration:.2f}s) — abortando.")
+        print(f"Duração estimada muito curta do hash ({duration:.2f}s)")
         return None
 
     start_sample = max(0, int(round(start_stored * ref_sr)))
@@ -69,8 +71,10 @@ def detect_and_save_segment_and_hashes(
     if segment.size == 0:
         print("Segmento extraído vazio — abortando.")
         return None
+
     if out_audio_path:
         sf.write(out_audio_path, segment, ref_sr)
+
     seg_hashes = fingerprint_audio_array(
         segment,
         ref_sr,
@@ -82,11 +86,11 @@ def detect_and_save_segment_and_hashes(
     )
 
     map_h = build_hash_map(seg_hashes)
-    save_to_firebase_hash(map_h, anime)
+    save_to_firebase_hash(map_h, anime, eps)
     return map_h
 
 
-def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime:str, ep:str):
+def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime: str, ep: str):
     y, sr = librosa.load(io.BytesIO(audio_data), sr=SR_TARGET, mono=True)
     target_hashes = fingerprint_audio_array(
         y,
@@ -98,12 +102,19 @@ def find_intro_in_audio(audio_data: bytes, stored_map: dict, anime:str, ep:str):
         max_dt_s=MAX_DT_S,
     )
 
-    result = match_hashes_find_timing(
-        stored_map, target_hashes, dt_bucket_ms=DT_BUCKET_MS, gap_threshold_s=GAP_THRESHOLD_S,
+    result, duration = match_hashes_find_timing(
+        stored_map,
+        target_hashes,
+        dt_bucket_ms=DT_BUCKET_MS,
+        gap_threshold_s=GAP_THRESHOLD_S,
     )
 
     if result is None:
         print("Nenhuma correspondência encontrada.")
+        return None
+
+    if duration < MIN_DURATION_SEC:
+        print(f"Duração estimada da comparaçao do hash com o atual muito curta ({duration:.2f}s)")
         return None
 
     save_to_firebase_intro(result, anime, ep)

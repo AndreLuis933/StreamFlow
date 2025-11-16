@@ -24,73 +24,63 @@ export function attachIntroButton({
     end_sec: number;
   } | null>;
 }): CleanupFn {
-  let cancelled = false;
 
-  async function setup() {
+  async function initializeCustomButton() {
     const duracao = await fetchIntroDuration(nome, ep);
-    if (cancelled) return;
-    introDurationRef.current = duracao;
+    introDurationRef.current = duracao; // Armazena a duração no ref
 
-    const container = player.elements?.container;
+    const container = player.elements.container;
     if (!container) return;
 
+    // Cria o botão apenas se ele ainda não existir
     if (!customButtonRef.current) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "custom-center-button";
-      btn.setAttribute("aria-label", "Pular Abertura");
+      btn.setAttribute("aria-label", "Custom Center Button");
       btn.textContent = "Pular Abertura";
-      btn.style.display = "none";
+      btn.style.display = "none"; // Começa oculto
 
       btn.addEventListener("click", () => {
         if (introDurationRef.current) {
           player.currentTime = introDurationRef.current.end_sec;
         }
       });
-
       container.appendChild(btn);
-      customButtonRef.current = btn;
+      customButtonRef.current = btn; // Armazena a referência do botão
     }
   }
 
+  // Handler do timeupdate que usa os refs
   const handleTimeUpdate = () => {
     const currentTime = video.currentTime;
     const duracao = introDurationRef.current;
     const btn = customButtonRef.current;
 
     if (duracao && btn) {
-      if (currentTime >= duracao.start_sec && currentTime <= duracao.end_sec) {
+      if (
+        currentTime >= duracao.start_sec &&
+        currentTime <= duracao.end_sec
+      ) {
         btn.style.display = "block";
       } else {
         btn.style.display = "none";
       }
     }
   };
+  // --- Fim da nova abordagem ---
 
-  // Se o player já estiver pronto, configura imediatamente; senão, espera o "ready"
-  let removePlyrReady: (() => void) | null = null;
-  if (player?.ready) {
-    setup();
-  } else if (player?.on) {
-    const onReady = () => setup();
-    player.on("ready", onReady);
-    removePlyrReady = () => {
-      // plyr tem .off na maioria das versões
-      if (player.off) player.off("ready", onReady);
-    };
+  // Inicializa o botão e busca a duração
+  if (player.ready) {
+    initializeCustomButton();
+  } else {
+    player.on("ready", initializeCustomButton);
   }
+
 
   video.addEventListener("timeupdate", handleTimeUpdate);
 
   return () => {
-    cancelled = true;
-    if (removePlyrReady) removePlyrReady();
-
     video.removeEventListener("timeupdate", handleTimeUpdate);
-
-    if (customButtonRef.current?.parentNode) {
-      customButtonRef.current.parentNode.removeChild(customButtonRef.current);
-      customButtonRef.current = null;
-    }
   };
 }

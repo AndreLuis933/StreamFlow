@@ -2,10 +2,13 @@ import { useRef, useEffect, useCallback } from "react";
 import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
-import { useHlsPlayer } from "@/hooks/useHlsPlayer";
-
+import { setupHlsPlayer } from "@/hooks/setupHlsPlayer";
+import { fetchIntroDuration } from "@/services/anime";
 import "./button.css";
-import { useVideoEventListeners } from "@/hooks/useVideoEventListeners";
+import { waitForPlayer } from "@/utils/waitForPlayer";
+import { attachVideoListeners } from "@/hooks/listeners/videoListeners";
+import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
+import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -29,7 +32,13 @@ const CardPlayer = ({
     nome
   )}&ep=${encodeURIComponent(ep)}`;
 
-  const { saveProgress, getProgress, clearProgress, hasRestoredProgress } =
+  const customButtonRef = useRef<HTMLButtonElement | null>(null);
+  const introDurationRef = useRef<{
+    start_sec: number;
+    end_sec: number;
+  } | null>(null);
+
+  const { saveProgress, getProgress, hasRestoredProgress } =
     useVideoProgress(videoId);
 
   const restoreProgress = useCallback(
@@ -45,23 +54,40 @@ const CardPlayer = ({
     [getProgress, hasRestoredProgress]
   );
 
-  useHlsPlayer({
-    src,
-    videoId,
-    plyrRef,
-    onManifestParsed: restoreProgress,
-  });
+  useEffect(() => {
+    return waitForPlayer(plyrRef, (_, video) => {
+      return attachVideoListeners({ video, saveProgress, restoreProgress });
+    });
+  }, [saveProgress, restoreProgress]);
 
-  useVideoEventListeners({
-    plyrRef,
-    videoId,
-    onVideoEnd,
-    saveProgress,
-    clearProgress,
-    restoreProgress,
-    nome,
-    ep,
-  });
+  useEffect(() => {
+    return waitForPlayer(plyrRef, () => {
+      return attachKeyboardListeners({ onVideoEnd });
+    });
+  }, [videoId]);
+
+  useEffect(() => {
+    return waitForPlayer(plyrRef, (player, video) => {
+      return attachIntroButton({
+        player,
+        video,
+        fetchIntroDuration,
+        nome,
+        ep,
+        customButtonRef,
+        introDurationRef,
+      });
+    });
+  }, [videoId]);
+
+  useEffect(() => {
+    return waitForPlayer(plyrRef, (_, video) => {
+      return setupHlsPlayer({
+        src,
+        video,
+      });
+    });
+  }, [videoId]);
 
   useEffect(() => {
     hasRestoredProgress.current = false;
@@ -72,12 +98,7 @@ const CardPlayer = ({
       ref={plyrRef}
       source={{
         type: "video",
-        sources: [
-          {
-            src: src,
-            type: "application/x-mpegURL",
-          },
-        ],
+        sources: [],
         poster: thumbnail,
       }}
       options={{

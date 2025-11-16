@@ -1,21 +1,39 @@
-import base64
-import json
-import zlib
-
-from ..config.firebase import db
+from google.cloud.firestore_v1 import FieldFilter
+from src.config.firebase import db
 
 
-def consult_hash(nome):
-    doc_ref = db.collection("animes").document(nome).collection("hash").document("teste")
-    doc = doc_ref.get()
-    if doc.exists:
+def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, janela: int = 30):
+    ep_min = episodio_alvo - janela
+    ep_max = episodio_alvo + janela
+
+    hashes_ref = db.collection("animes").document(anime_nome).collection("hashes")
+
+    query = (
+        hashes_ref.where(filter=FieldFilter("episodio_base", ">=", ep_min))
+        .where(filter=FieldFilter("episodio_base", "<=", ep_max))
+        .order_by("episodio_base")
+    )
+
+    docs = query.get()
+
+    candidatos = []
+    for doc in docs:
         data = doc.to_dict()
-        encoded = data.get("data")
-        if encoded:
-            compressed = base64.b64decode(encoded)
-            json_bytes = zlib.decompress(compressed)
-            return json.loads(json_bytes.decode("utf-8"))
-    return None
+        ep_base = data.get("episodio_base")
+        if ep_min <= ep_base <= ep_max:
+            candidatos.append(
+                {
+                    "doc_id": doc.id,
+                    "episodio_base": ep_base,
+                    "valido_de": data.get("valido_de"),
+                    "valido_ate": data.get("valido_ate"),
+                    "fingerprint_data": data["fingerprint_data"],
+                },
+            )
+
+    # Ordena pelo mais próximo do episódio alvo
+    candidatos.sort(key=lambda c: abs(c["episodio_base"] - episodio_alvo))
+    return candidatos
 
 
 def consult_intro(nome, ep):

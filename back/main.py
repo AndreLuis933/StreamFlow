@@ -91,7 +91,7 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
             continue
 
         abs_url = urllib.parse.urljoin(base, line_stripped)
-        proxied = f"/seg?u={urllib.parse.quote(abs_url, safe='')}"
+        proxied = f"http://localhost:8000/seg?u={urllib.parse.quote(abs_url, safe='')}"
         out_lines.append(proxied)
 
     rewritten = "\n".join(out_lines) + ("\n" if not out_lines or not out_lines[-1].endswith("\n") else "")
@@ -99,11 +99,7 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
     return PlainTextResponse(
         rewritten,
         media_type="application/vnd.apple.mpegurl",
-        headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173",  # ou "*", se sem credenciais
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-        },
+        headers={"Cache-Control": "public, max-age=36000"},
     )
 
 
@@ -121,11 +117,7 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
     return StreamingResponse(
         gen(),
         media_type="video/MP2T",
-        headers={
-            "Access-Control-Allow-Origin": "http://localhost:5173",  # ou "*", se sem credenciais
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "*",
-        },
+        headers={"Cache-Control": "public, max-age=300"},
     )
 
 @app.get("/intro")

@@ -44,13 +44,12 @@ async def baixar_hls_e_retorna_audio(url_m3u8, start_sec=None, duration_sec=None
         async with semaphore:
             return await baixar_segmento(session, i, seg.absolute_uri, headers)
 
-    max_duration = 300  # 5 minutos em segundos
     accumulated_duration = 0
     segments_to_download = []
 
     for i, seg in enumerate(playlist.segments):
         accumulated_duration += seg.duration
-        if accumulated_duration > max_duration:
+        if accumulated_duration > duration_sec:
             break
         segments_to_download.append((i, seg))
 

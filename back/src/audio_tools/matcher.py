@@ -94,7 +94,7 @@ def match_hashes_find_timing(stored_hash_map, target_hashes, dt_bucket_ms=100, g
     best_delta_sec = (best_bucket * dt_bucket_ms) / 1000.0
 
     # Estimar duração com base nos tempos do target (tT)
-    target_times = sorted(set([p[1] for p in pairs]))
+    target_times = sorted({p[1] for p in pairs})
     if not target_times:
         return None
 
@@ -113,7 +113,10 @@ def match_hashes_find_timing(stored_hash_map, target_hashes, dt_bucket_ms=100, g
     end_sec = best_cluster[-1]
     duration = end_sec - start_sec
 
-    return {
-        "start_sec": start_sec,
-        "end_sec": end_sec,
-    }
+    return (
+        {
+            "start_sec": start_sec,
+            "end_sec": end_sec,
+        },
+        duration,
+    )
