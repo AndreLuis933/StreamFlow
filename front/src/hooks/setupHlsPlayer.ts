@@ -6,23 +6,7 @@ interface SetupHlsPlayerProps {
   video: HTMLVideoElement;
 }
 
-function suportaHlsNativo(): boolean {
-  const video = document.createElement("video");
-  return (
-    video.canPlayType("application/vnd.apple.mpegurl") === "probably" ||
-    video.canPlayType("application/vnd.apple.mpegurl") === "maybe" ||
-    video.canPlayType("application/x-mpegURL") === "probably" ||
-    video.canPlayType("application/x-mpegURL") === "maybe"
-  );
-}
-
 export const setupHlsPlayer = ({ src, video }: SetupHlsPlayerProps) => {
-  if (suportaHlsNativo()) {
-    video.src = src;
-    //console.log("sourse configurado", src, video);
-    return;
-  }
-
   if (!Hls.isSupported()) {
     console.error("HLS não suportado neste navegador");
     return;

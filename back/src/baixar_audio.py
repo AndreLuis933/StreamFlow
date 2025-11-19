@@ -1,20 +1,19 @@
 import asyncio
 from urllib.error import HTTPError, URLError
 
-import aiohttp
+import httpx
 import m3u8
+from httpx_retries import Retry, RetryTransport
 
 from .config.config import SR_TARGET
 
 
-async def baixar_segmento(session, i, seg_url, headers):
-    try:
-        async with session.get(seg_url, headers=headers, timeout=30) as response:
-            data = await response.read()
-            return (i, data)
-    except (HTTPError, URLError) as e:
-        print(f"Erro no segmento {i}: {e}")
-        return (i, None)
+async def baixar_segmento(client, i, seg_url, headers):
+
+    response = await client.get(seg_url, headers=headers)
+    data = response.content
+    return (i, data)
+
 
 
 semaphore = asyncio.Semaphore(16)
@@ -40,9 +39,9 @@ async def baixar_hls_e_retorna_audio(url_m3u8, type_, start_sec=None, duration_s
 
     segmentos_data = {}
 
-    async def download_with_semaphore(session, i, seg):
+    async def download_with_semaphore(client, i, seg):
         async with semaphore:
-            return await baixar_segmento(session, i, seg.absolute_uri, headers)
+            return await baixar_segmento(client, i, seg.absolute_uri, headers)
 
     segments_to_download = []
 
@@ -69,14 +68,20 @@ async def baixar_hls_e_retorna_audio(url_m3u8, type_, start_sec=None, duration_s
 
             if accumulated_duration >= duration_sec:
                 break
-
-    async with aiohttp.ClientSession() as session:
-        tasks = [download_with_semaphore(session, i, seg) for i, seg in segments_to_download]
+    retry = Retry(total=10, backoff_factor=0.5)
+    transport = RetryTransport(retry=retry)
+    async with httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=httpx.Timeout(20.0, read=10.0, connect=2.0),
+        limits=httpx.Limits(max_keepalive_connections=20, max_connections=50),
+        transport=transport,
+    ) as client:
+        tasks = [download_with_semaphore(client, i, seg) for i, seg in segments_to_download]
         results = await asyncio.gather(*tasks)
         segmentos_data = dict(results)
 
     # Concatenar todos os segmentos em memória
-    buffer_completo = b"".join(segmentos_data[i] for i in sorted(segmentos_data.keys()))
+    buffer_completo = b"".join(data for i, data in sorted(segmentos_data.items()))
 
     cmd = [
         "ffmpeg",
@@ -117,4 +122,4 @@ async def baixar_hls_e_retorna_audio(url_m3u8, type_, start_sec=None, duration_s
         return stdout_data, init_duration
 
     print("❌ Erro ao processar com FFmpeg")
-    return None
+    return None,None

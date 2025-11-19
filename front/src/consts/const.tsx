@@ -10,4 +10,6 @@ export const TYPE_MAP: Record<string, "animes" | "filmes"> = {
   "boku-no-hero-academia-final",
   "gachiakuta",
   "Ansatsu Kyoushitsu",
+  "Rokudenashi Majutsu Koushi to Akashic Records",
+  "Tensai Ouji no Akaji Kokka Saisei Jutsu"
 ];

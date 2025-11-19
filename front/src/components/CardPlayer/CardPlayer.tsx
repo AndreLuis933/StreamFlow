@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
@@ -9,8 +9,9 @@ import { waitForPlayer } from "@/utils/waitForPlayer";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
 import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
+import { attachVideoListeners, type CleanupFn } from "@/hooks/listeners/videoListeners";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const VITE_API_BASE_URL_PROXY = import.meta.env.VITE_API_BASE_URL_PROXY;
 
 interface CardPlayerProps {
   thumbnail: string;
@@ -28,7 +29,7 @@ const CardPlayer = ({
   ep,
 }: CardPlayerProps) => {
   const plyrRef = useRef<any>(null);
-  const src = `${API_BASE}/m3u8?nome=${encodeURIComponent(
+  const src = `${VITE_API_BASE_URL_PROXY}/m3u8?nome=${encodeURIComponent(
     nome
   )}&ep=${encodeURIComponent(ep)}`;
 
@@ -43,27 +44,27 @@ const CardPlayer = ({
     end_sec: number;
   } | null>(null);
 
-  const {  hasRestoredProgress } =
+  const { getProgress, hasRestoredProgress, saveProgress } =
     useVideoProgress(videoId);
 
-  // const restoreProgress = useCallback(
-  //   (video: HTMLVideoElement) => {
-  //     if (hasRestoredProgress.current) return;
+  const restoreProgress = useCallback(
+    (video: HTMLVideoElement) => {
+      if (hasRestoredProgress.current) return;
 
-  //     const savedTime = getProgress();
-  //     if (savedTime > 0 && video.duration) {
-  //       video.currentTime = savedTime;
-  //       hasRestoredProgress.current = true;
-  //     }
-  //   },
-  //   [getProgress, hasRestoredProgress]
-  // );
+      const savedTime = getProgress();
+      if (savedTime > 0 && video.duration) {
+        video.currentTime = savedTime;
+        hasRestoredProgress.current = true;
+      }
+    },
+    [getProgress, hasRestoredProgress]
+  );
 
-  // useEffect(() => {
-  //   return waitForPlayer(plyrRef, (_, video) => {
-  //     return attachVideoListeners({ video, saveProgress, restoreProgress });
-  //   });
-  // }, [videoId]);
+  useEffect(() => {
+    return waitForPlayer(plyrRef, (_, video) => {
+      return attachVideoListeners({ video, saveProgress, restoreProgress });
+    });
+  }, [videoId]);
 
   useEffect(() => {
     return waitForPlayer(plyrRef, () => {
@@ -73,7 +74,7 @@ const CardPlayer = ({
 
   useEffect(() => {
     return waitForPlayer(plyrRef, (player, video) => {
-      return attachIntroButton({
+      const cleanupIntro = attachIntroButton({
         player,
         video,
         fetchIntroDuration,
@@ -82,21 +83,26 @@ const CardPlayer = ({
         introButtonRef,
         introDurationRef,
       });
-    });
-  }, [videoId]);
 
-  useEffect(() => {
-    return waitForPlayer(plyrRef, (player, video) => {
-      return attachCreditsButton({
-        player,
-        video,
-        fetchCreditsDuration,
-        nome,
-        ep,
-        creditsButtonRef,
-        creditsDurationRef,
-        onVideoEnd,
-      });
+      let cleanupCredits: CleanupFn;
+      const timeoutId = setTimeout(() => {
+        cleanupCredits = attachCreditsButton({
+          player,
+          video,
+          fetchCreditsDuration,
+          nome,
+          ep,
+          creditsButtonRef,
+          creditsDurationRef,
+          onVideoEnd,
+        });
+      }, 2000);
+
+      return () => {
+        clearTimeout(timeoutId);
+        cleanupIntro?.();
+        cleanupCredits?.();
+      };
     });
   }, [videoId]);
 

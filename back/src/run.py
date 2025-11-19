@@ -7,6 +7,7 @@ from .firebase.firebase_consult import buscar_hashes_proximos, consult_seguement
 from .firebase.firebase_save import atualizar_hash_uso
 from .utils.descomprimir import descomprimir_fingerprint
 
+semaphore = asyncio.Semaphore(1)
 
 async def audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_):
     # 1ª tentativa: anterior se ep > 1, senão próximo
@@ -68,34 +69,36 @@ async def audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, t
 
 
 async def find_seguement_request(anime, ep, type_, out_audio_path=None):
-    result = consult_seguement(anime, ep, type_)
-    if result is not None:
-        return result
+    async with semaphore:
+        print(type_)
+        result = consult_seguement(anime, ep, type_)
+        if result is not None:
+            return result
 
-    ep_num = int(ep)
-    ep_formatado = str(ep_num).zfill(3)
+        ep_num = int(ep)
+        ep_formatado = str(ep_num).zfill(3)
 
-    candidatos = buscar_hashes_proximos(anime, ep_num, type_)
+        candidatos = buscar_hashes_proximos(anime, ep_num, type_)
 
-    url_atual = (
-        f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{anime}/{ep_formatado}.mp4/media-1/stream.m3u8"
-    )
-    audio_atual, start_duration = await baixar_hls_e_retorna_audio(url_atual, type_, start_sec=0, duration_sec=420)
-    if audio_atual is None:
-        print("Falha ao baixar o áudio atual")
-        return None
-    if candidatos:
-        for candidato in candidatos:
-            fingerprint_salvo = descomprimir_fingerprint(candidato["fingerprint_data"])
-            intro = await asyncio.to_thread(find_intro_in_audio,
-                audio_atual, fingerprint_salvo, anime, ep_formatado, type_, start_duration
-            )
-            if intro is not None:
-                atualizar_hash_uso(anime, candidato["doc_id"], ep_num)
-                return intro
+        url_atual = (
+            f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{anime}/{ep_formatado}.mp4/media-1/stream.m3u8"
+        )
+        audio_atual, start_duration = await baixar_hls_e_retorna_audio(url_atual, type_, start_sec=0, duration_sec=420)
+        if audio_atual is None:
+            print("Falha ao baixar o áudio atual")
+            return None
+        if candidatos:
+            for candidato in candidatos:
+                fingerprint_salvo = descomprimir_fingerprint(candidato["fingerprint_data"])
+                intro = await asyncio.to_thread(find_intro_in_audio,
+                    audio_atual, fingerprint_salvo, anime, ep_formatado, type_, start_duration
+                )
+                if intro is not None:
+                    atualizar_hash_uso(anime, candidato["doc_id"], ep_num)
+                    return intro
+            return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)
+
         return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)
-
-    return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)
 
 
 if __name__ == "__main__":

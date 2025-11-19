@@ -1,4 +1,4 @@
-app = 'api-vidios-proxy'
+app = 'api-vidios-analysis'
 primary_region = 'gru'
 
 
@@ -12,6 +12,6 @@ primary_region = 'gru'
   processes = ['app']
 
 [[vm]]
-  memory = '512mb'
+  memory = '2gb'
   cpu_kind = 'shared'
-  cpus = 1
+  cpus = 4

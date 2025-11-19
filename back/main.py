@@ -8,18 +8,24 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
-from src.run import find_seguement_request
+from httpx_retries import Retry, RetryTransport
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global client
+
+    retry = Retry(total=7, backoff_factor=0.3)
+    transport = RetryTransport(retry=retry)
+
     client = httpx.AsyncClient(
-        follow_redirects=True, timeout=60, limits=httpx.Limits(max_keepalive_connections=20, max_connections=50)
+        follow_redirects=True,
+        timeout=httpx.Timeout(10.0, read=5.0, connect=2.0),
+        limits=httpx.Limits(max_keepalive_connections=20, max_connections=50),
+        transport=transport,
     )
     yield
     await client.aclose()
-
 
 app = FastAPI(lifespan=lifespan)
 
@@ -91,7 +97,7 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
             continue
 
         abs_url = urllib.parse.urljoin(base, line_stripped)
-        proxied = f"http://localhost:8000/seg?u={urllib.parse.quote(abs_url, safe='')}"
+        proxied = f"/seg?u={urllib.parse.quote(abs_url, safe='')}"
         out_lines.append(proxied)
 
     rewritten = "\n".join(out_lines) + ("\n" if not out_lines or not out_lines[-1].endswith("\n") else "")
@@ -99,7 +105,7 @@ async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(
     return PlainTextResponse(
         rewritten,
         media_type="application/vnd.apple.mpegurl",
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+        headers={"Cache-Control": "public, max-age=300"},
     )
 
 
@@ -108,27 +114,26 @@ async def proxy_segment(u: Annotated[str, Query(...)]):
     url = urllib.parse.unquote(u)
 
     async def gen():
-        async with client.stream("GET", url, headers=FIXED_HEADERS) as r:
-            if r.status_code != 200:
-                raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
-            async for chunk in r.aiter_bytes(128 * 1024):
-                yield chunk
+        try:
+            async with client.stream("GET", url, headers=FIXED_HEADERS) as r:
+                if r.status_code != 200:
+                    # aqui você pode logar, se quiser
+                    raise HTTPException(status_code=502, detail=f"Falha ao obter segmento ({r.status_code})")
+
+                async for chunk in r.aiter_bytes(128 * 1024):
+                    yield chunk
+
+        except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.TimeoutException) as e:
+            # Já tentou várias vezes por causa do AsyncRetryTransport
+            raise HTTPException(status_code=504, detail=f"Timeout ao obter segmento: {e!s}") from e
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=502, detail=f"Erro HTTP ao obter segmento: {e!s}") from e
 
     return StreamingResponse(
         gen(),
         media_type="video/MP2T",
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+        headers={"Cache-Control": "public, max-age=300"},
     )
-
-
-@app.get("/intro")
-async def get_intro(anime: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
-    return await find_seguement_request(anime, ep, "intro")
-
-
-@app.get("/credits")
-async def get_credits(anime: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
-    return await find_seguement_request(anime, ep, "credits")
 
 
 @app.get("/data")
@@ -148,7 +153,7 @@ async def animes(slug: Annotated[str, Query(...)], page: Annotated[str, Query(..
     return Response(
         json.dumps(r.json()),
         media_type="application/json",
-        headers={"Cache-Control": "public, max-age=36000"},
+        headers={"Cache-Control": "public, max-age=300"},
     )
 
 
