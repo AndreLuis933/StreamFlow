@@ -27,7 +27,7 @@ async def baixar_hls_e_retorna_audio(url_m3u8, type_, start_sec=None, duration_s
     try:
         playlist = m3u8.load(url_m3u8, headers=headers)
     except (HTTPError, URLError):
-        return None
+        return None, None
 
     if playlist.playlists:
         variant_url = playlist.playlists[0].absolute_uri
@@ -35,7 +35,7 @@ async def baixar_hls_e_retorna_audio(url_m3u8, type_, start_sec=None, duration_s
 
     if not playlist.segments:
         print("Nenhum segmento encontrado!")
-        return None
+        return None, None
 
     segmentos_data = {}
 
