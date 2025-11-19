@@ -3,6 +3,7 @@ import Home from "./pages/Home/Home";
 import Base from "./pages/Base";
 import AnimePage from "./pages/Anime/AnimePage";
 import PlayerPage from "./pages/Player/PlayerPage";
+import Movie from "./pages/Movie/Movie";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -17,6 +18,7 @@ const App = () => {
           <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
             <Route path="/a/:id" element={<AnimePage />} />
+            <Route path="/f/:id" element={<Movie />} />
             <Route path="/watch/:IdEp" element={<PlayerPage />} />
           </Route>
         </Routes>

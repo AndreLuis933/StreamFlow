@@ -5,8 +5,7 @@ import { EpNavButton } from "@/components/EpNavButtons";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
 import { Page, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
-
-
+const VITE_API_BASE_URL_PROXY = import.meta.env.VITE_API_BASE_URL_PROXY;
 type RouteParams = { IdEp: string };
 
 export default function PlayerPage() {
@@ -31,11 +30,12 @@ export default function PlayerPage() {
   const diferencaEmMs = dataAtual.getTime() - dataPassada.getTime();
   const diasAtras = Math.floor(diferencaEmMs / (1000 * 60 * 60 * 24));
 
-
-
   const thumb = getEpisodeImageUrlBySlug(data.anime.slug_serie, ep);
 
   const goTo = (slug: string) => navigate(`/watch/${slug}`);
+  const src = `${VITE_API_BASE_URL_PROXY}/m3u8?nome=${encodeURIComponent(
+    data.anime.slug_serie
+  )}&ep=${encodeURIComponent(ep)}`;
 
   return (
     <Page>
@@ -50,6 +50,7 @@ export default function PlayerPage() {
             videoId={IdEp}
             nome={data.anime.slug_serie}
             ep={data.n_episodio}
+            src={src}
             onVideoEnd={() => {
               if (data.nextEp && data.nextEp.generate_id)
                 goTo(data.nextEp.generate_id);

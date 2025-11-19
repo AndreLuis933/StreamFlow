@@ -9,16 +9,18 @@ import { waitForPlayer } from "@/utils/waitForPlayer";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
 import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
-import { attachVideoListeners, type CleanupFn } from "@/hooks/listeners/videoListeners";
-
-const VITE_API_BASE_URL_PROXY = import.meta.env.VITE_API_BASE_URL_PROXY;
+import {
+  attachVideoListeners,
+  type CleanupFn,
+} from "@/hooks/listeners/videoListeners";
 
 interface CardPlayerProps {
   thumbnail: string;
   videoId: string;
   onVideoEnd: () => void;
   nome: string;
-  ep: string;
+  ep?: string;
+  src: string;
 }
 
 const CardPlayer = ({
@@ -27,11 +29,9 @@ const CardPlayer = ({
   onVideoEnd,
   nome,
   ep,
+  src,
 }: CardPlayerProps) => {
   const plyrRef = useRef<any>(null);
-  const src = `${VITE_API_BASE_URL_PROXY}/m3u8?nome=${encodeURIComponent(
-    nome
-  )}&ep=${encodeURIComponent(ep)}`;
 
   const introButtonRef = useRef<HTMLButtonElement | null>(null);
   const introDurationRef = useRef<{
@@ -74,6 +74,7 @@ const CardPlayer = ({
 
   useEffect(() => {
     return waitForPlayer(plyrRef, (player, video) => {
+      if (!ep) return;
       const cleanupIntro = attachIntroButton({
         player,
         video,

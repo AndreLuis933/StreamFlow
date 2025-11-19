@@ -132,3 +132,31 @@ export interface DetalhesEpResponse {
   };
   __N_SSG: boolean;
 }
+
+export interface DetalhesFilmeResponse {
+  pageProps: {
+    data: {
+      data_movie: {
+        id_filme: number;
+        pgad: number;
+        nome_filme: string;
+        nome_original: string;
+        slug_filme: string;
+        ano: string;
+        diretor: string;
+        elenco: string;
+        duracao: string;
+        origem: string;
+        censura: string;
+        sinopse_filme: string;
+        od: string;
+        generate_id: string;
+      };
+      data_user: Record<string, any>;
+      total_movies: {
+        total_filmes: number;
+      };
+    };
+  };
+  __N_SSG: boolean;
+}

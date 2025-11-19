@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import re
 import urllib.parse
@@ -27,6 +29,7 @@ async def lifespan(app: FastAPI):
     yield
     await client.aclose()
 
+
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -50,11 +53,6 @@ FIXED_HEADERS = {
 _build_id_cache = None
 
 
-def build_m3u8_url(nome: str, ep: str) -> str:
-    ep_norm = ep.zfill(3)
-    return f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep_norm}.mp4/media-1/stream.m3u8"
-
-
 async def get_build_id(force_refresh: bool = False) -> str:
     """Obtém o buildId (com cache)."""
     global _build_id_cache
@@ -73,14 +71,45 @@ async def get_build_id(force_refresh: bool = False) -> str:
         raise Exception("Não foi possível encontrar o buildId")
 
 
+def build_m3u8_url(nome: str, ep: str | None = None, is_movie: bool = False) -> str:
+    """Constrói URL do m3u8 para animes ou filmes.
+
+    Args:
+        nome: Nome do anime/filme
+        ep: Número do episódio (opcional, usado apenas para animes)
+        is_movie: Se True, usa o padrão de URL de filme
+
+    """
+    if is_movie or ep is None:
+        # URL para filmes
+        return f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/movies/{nome}/movie.mp4/media-1/stream.m3u8"
+
+    # URL para animes com episódios
+    ep_norm = ep.zfill(3)
+    return f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{nome}/{ep_norm}.mp4/media-1/stream.m3u8"
+
+
 @app.get("/m3u8")
-async def proxy_m3u8(nome: Annotated[str, Query(...)], ep: Annotated[str, Query(...)]):
+async def proxy_m3u8(
+    nome: Annotated[str, Query(...)],
+    ep: Annotated[str | None, Query()] = None,
+    is_movie: Annotated[bool, Query()] = False,
+):
     """Proxy da playlist .m3u8.
     - Baixa a m3u8 da origem com headers fixos
     - Reescreve as URLs de segmentos para passar por /seg?u=...
     - Retorna m3u8 com content-type correto.
+
+    Exemplos:
+    - Anime: /m3u8?nome=naruto&ep=1
+    - Filme: /m3u8?nome=kimetsu-no-yaiba-mugenjou-hen-akaza-sairai&is_movie=true
+
     """
-    src_url = build_m3u8_url(nome, ep)
+    if not is_movie and ep is None:
+        raise HTTPException(status_code=400, detail="Parâmetro 'ep' é obrigatório para animes")
+
+    src_url = build_m3u8_url(nome, ep, is_movie)
+
     async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
         r = await client.get(src_url, headers=FIXED_HEADERS)
         if r.status_code != 200:
@@ -167,6 +196,12 @@ async def detalhes_anime(slug: Annotated[str, Query(...)]):
 async def detalhes_episodio(slug: Annotated[str, Query(...)]):
     """Detalhes de um episódio específico."""
     return await fetch_with_build_id(path=f"/e/{slug}.json", query_param=f"episode={slug}")
+
+
+@app.get("/detalhes/movie")
+async def detalhes_filme(slug: Annotated[str, Query(...)]):
+    """Detalhes de um episódio específico."""
+    return await fetch_with_build_id(path=f"/f/{slug}.json", query_param=f"movie={slug}")
 
 
 async def fetch_with_build_id(path: str, query_param: str):

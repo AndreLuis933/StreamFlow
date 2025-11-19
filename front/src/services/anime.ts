@@ -4,6 +4,7 @@ import type {
   ApiAnimeResponse,
   ApiDataResponse,
   DetalhesEpResponse,
+  DetalhesFilmeResponse,
 } from "@/types/api";
 import { parseAnimeResponse } from "@/utils/prosessData";
 
@@ -29,6 +30,13 @@ export async function fetchDetalhesAnimeBySlug(slug: string) {
 export async function fetchDetalhesEpBySlug(slug: string) {
   const { data } = await axios.get<DetalhesEpResponse>(
     `/detalhes/episodio?slug=${encodeURIComponent(slug)}`
+  );
+  return data;
+}
+
+export async function fetchDetalhesMovieBySlug(slug: string) {
+  const { data } = await axios.get<DetalhesFilmeResponse>(
+    `/detalhes/movie?slug=${encodeURIComponent(slug)}`
   );
   return data;
 }
