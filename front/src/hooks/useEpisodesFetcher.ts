@@ -9,7 +9,7 @@ interface UseEpisodesFetcherProps {
 
 export function useEpisodesFetcher({ slugs }: UseEpisodesFetcherProps) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<boolean>(false);
 
   const fetchEpisodes = useCallback(async () => {
