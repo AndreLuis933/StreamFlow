@@ -1,6 +1,6 @@
 import React from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import PersonIcon from "@mui/icons-material/Person";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
   AnimeHeroContainer,
   PosterContainer,
@@ -18,8 +18,9 @@ import {
   Synopsis,
   FooterContainer,
   FavoriteButton,
-  FavoriteText,
+
 } from "./AnimeHero.styles";
+
 
 export interface AnimeHeroProps {
   title: string;
@@ -29,7 +30,8 @@ export interface AnimeHeroProps {
   year?: string | number;
   genres?: string[];
   synopsis?: string;
-  favoriteCount?: number;
+  handleFavoritar: ()=>void;
+  isFavorite: boolean;
 }
 
 const AnimeHero: React.FC<AnimeHeroProps> = ({
@@ -40,7 +42,8 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
   year,
   genres = [],
   synopsis,
-  favoriteCount,
+  handleFavoritar,
+  isFavorite,
 }) => {
   return (
     <AnimeHeroContainer>
@@ -93,18 +96,18 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
         {synopsis && <Synopsis>{synopsis}</Synopsis>}
 
         {/* Footer com favoritos */}
-        {favoriteCount !== undefined && (
-          <FooterContainer>
-            <FavoriteButton>
+
+        <FooterContainer>
+          <FavoriteButton onClick={handleFavoritar} isFavorite={isFavorite}>
+            {isFavorite ? (
+              // Se for favorito: Ícone Cheio (a cor vermelha vem do styled component)
               <FavoriteIcon />
-            </FavoriteButton>
-            <FavoriteText>
-              <PersonIcon />
-              {favoriteCount.toLocaleString()} usuários têm esse anime como
-              favorito.
-            </FavoriteText>
-          </FooterContainer>
-        )}
+            ) : (
+              // Se NÃO for favorito: Ícone de Borda (a cor branca vem do styled component)
+              <FavoriteBorderIcon />
+            )}
+          </FavoriteButton>
+        </FooterContainer>
       </ContentContainer>
     </AnimeHeroContainer>
   );

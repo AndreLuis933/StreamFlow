@@ -9,7 +9,7 @@ import type {
 import { parseAnimeResponse } from "@/utils/prosessData";
 
 const apiANALYSIS = axiosLib.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL_ANALYSIS, // ou a URL que você quiser
+  baseURL: import.meta.env.VITE_API_BASE_URL_ANALYSIS,
   timeout: 60000,
 });
 

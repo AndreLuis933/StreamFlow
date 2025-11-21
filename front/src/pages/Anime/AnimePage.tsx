@@ -1,23 +1,47 @@
 import { Grid, Box, Skeleton, Alert } from "@mui/material";
 import { useParams } from "react-router-dom";
-import SearchTextField from "@/components/SearchTextField";
 import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
 import AnimeHero from "@/components/AnimeHero/AnimeHero";
 import { useAnimeEpisodes } from "./Anime.hooks";
 import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
+import { useAuth } from "@/context/AuthContext";
+import { isFavorite, saveFavorite } from "@/services/firebase";
+import { useEffect, useState } from "react";
 
 type RouteParams = { id: string };
 
 export default function AnimePage() {
   const { id } = useParams<RouteParams>();
+  const [favoritado, setFavoritado] = useState(false);
+  if (!id) {
+    return <Alert severity="warning">Parâmetros inválidos na URL.</Alert>;
+  }
   const { episodes, loading, error, data } = useAnimeEpisodes(id);
+  const { currentUser } = useAuth();
+
+  let userId: string | null = null;
+  if (currentUser) {
+    userId = currentUser.uid;
+  }
+  const handleFavoritar = () => {
+    if (!data) return ;
+    if (!userId) return alert("So pode favoritar se estiver logado");
+    const favorito = !favoritado;
+    saveFavorite(userId, id, data.titulo, data.slug_serie, favorito);
+    setFavoritado(favorito);
+  };
+  useEffect(() => {
+    const checarFavorito = async () => {
+      if (!userId) return;
+      const resposta = await isFavorite(userId, id);
+      setFavoritado(resposta);
+    };
+
+    checarFavorito();
+  }, [userId, id]);
 
   return (
     <>
-      <Box sx={{ p: 4 }}>
-        <SearchTextField />
-      </Box>
-
       {!loading && data && (
         <AnimeHero
           title={data.titulo}
@@ -27,7 +51,8 @@ export default function AnimePage() {
           year={data.ano}
           genres={data.generos}
           synopsis={data.sinopse}
-          favoriteCount={data.favAnimes}
+          handleFavoritar={handleFavoritar}
+          isFavorite={favoritado}
         />
       )}
 

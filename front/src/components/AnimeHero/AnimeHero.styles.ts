@@ -165,7 +165,9 @@ export const FooterContainer = styled(Box)({
 });
 
 // Botão de favorito
-export const FavoriteButton = styled(Box)({
+export const FavoriteButton = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "isFavorite", // Evita passar isFavorite para a div HTML
+})<{ isFavorite?: boolean }>(({ isFavorite }) => ({
   width: 44,
   height: 44,
   borderRadius: "50%",
@@ -183,9 +185,12 @@ export const FavoriteButton = styled(Box)({
   },
   "& svg": {
     fontSize: 20,
-    color: "rgba(255, 255, 255, 0.7)",
+    // AQUI ESTÁ A MÁGICA:
+    // Se favorito = vermelho vivo, Se não = branco
+    color: isFavorite ? "#ff1744" : "#ffffff",
+    transition: "color 0.2s ease-in-out",
   },
-});
+}));
 
 // Texto de usuários favoritos
 export const FavoriteText = styled(Typography)({
