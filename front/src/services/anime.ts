@@ -10,7 +10,7 @@ import { parseAnimeResponse } from "@/utils/prosessData";
 
 const apiANALYSIS = axiosLib.create({
   baseURL: import.meta.env.VITE_API_BASE_URL_ANALYSIS,
-  timeout: 60000,
+  timeout: 100000,
 });
 
 export async function fetchAnimeBySlug(slug: string, page = 1) {

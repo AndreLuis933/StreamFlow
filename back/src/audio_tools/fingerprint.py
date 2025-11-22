@@ -1,6 +1,30 @@
 import numpy as np
-from scipy.ndimage import maximum_filter
-from scipy.signal import medfilt2d, stft
+from numpy.lib.stride_tricks import sliding_window_view
+from src.config.loggin import measure_time
+
+
+def fast_max_filter_2d(img: np.ndarray, size: tuple) -> np.ndarray:
+    """Implementação otimizada de maximum_filter usando a propriedade separável.
+    Faz o max em um eixo, depois no outro. Reduz complexidade de O(N*M) para O(N+M).
+    """
+    # 1. Max no eixo 0 (Frequência)
+    k_f = size[0]
+    pad_f = k_f // 2
+    # Pad para manter o tamanho. Se k_f for par (ex: 20), pad=10 de cada lado gera tamanho N+1, cortamos depois.
+    img_padded_f = np.pad(img, ((pad_f, pad_f), (0, 0)), mode="constant")
+    windows_f = sliding_window_view(img_padded_f, window_shape=k_f, axis=0)
+    max_f = np.max(windows_f, axis=-1)
+    # Ajuste fino de tamanho (corta excesso se houver)
+    max_f = max_f[: img.shape[0], :]
+
+    # 2. Max no eixo 1 (Tempo) - aplicado sobre o resultado anterior
+    k_t = size[1]
+    pad_t = k_t // 2
+    img_padded_t = np.pad(max_f, ((0, 0), (pad_t, pad_t)), mode="constant")
+    windows_t = sliding_window_view(img_padded_t, window_shape=k_t, axis=1)
+    max_t = np.max(windows_t, axis=-1)
+    # Ajuste fino de tamanho
+    return max_t[:, : img.shape[1]]
 
 
 def fingerprint_audio_array(
@@ -12,47 +36,57 @@ def fingerprint_audio_array(
     peak_neighborhood_size: tuple = (20, 20),
     max_dt_s: float = 2.0,
 ) -> list[dict]:
-    """Retorna lista [{'hash': str, 'time': float}, ...]."""
-    noverlap = n_fft - hop_length
+    # 1. STFT (Mantive a versão NumPy pois a diferença foi pequena: 0.05s vs 0.08s)
+    with measure_time("STFT Calculation (NumPy)"):
+        window = np.hanning(n_fft)
+        pad_width = n_fft // 2
+        y_padded = np.pad(y, pad_width, mode="reflect")
 
-    pad_amount = n_fft // 2
-    y_padded = np.pad(y, (pad_amount, pad_amount), mode="reflect")
+        shape = y_padded.shape[:-1] + ((y_padded.shape[-1] - n_fft) // hop_length + 1, n_fft)
+        strides = y_padded.strides[:-1] + (y_padded.strides[-1] * hop_length, y_padded.strides[-1])
+        frames = np.lib.stride_tricks.as_strided(y_padded, shape=shape, strides=strides)
 
-    f, t, Zxx = stft(y_padded, fs=sr, nperseg=n_fft, noverlap=noverlap, window="hann", boundary=None, padded=False)
+        Zxx = np.fft.rfft(frames * window, axis=1).T
+        s = np.abs(Zxx)
 
-    s = np.abs(Zxx)
+    with measure_time("Peak Finding (NumPy Separable)"):
+        local_max = fast_max_filter_2d(s, peak_neighborhood_size)
 
-    s = medfilt2d(s, kernel_size=3)
-    peaks = maximum_filter(s, size=peak_neighborhood_size) == s
-    freqs_idx, times_idx = np.where(peaks)
+        # Boolean mask
+        peaks = (s == local_max) & (s > 0)
+        freqs_idx, times_idx = np.where(peaks)
 
-    freq_vals = freqs_idx * (sr / n_fft)
-    time_vals = times_idx * (hop_length / sr)
+    with measure_time("Sorting Peaks"):
+        freq_vals = freqs_idx * (sr / n_fft)
+        time_vals = times_idx * (hop_length / sr)
 
-    order = np.argsort(time_vals)
-    freq_vals = freq_vals[order]
-    time_vals = time_vals[order]
+        order = np.argsort(time_vals)
+        freq_vals = freq_vals[order]
+        time_vals = time_vals[order]
 
     hashes = []
     size = len(time_vals)
 
-    for i in range(size):
-        f1 = int(freq_vals[i])
-        t1 = float(time_vals[i])
+    with measure_time("Hashing Loop"):
+        f_list = freq_vals.astype(int).tolist()
+        t_list = time_vals.tolist()
 
-        for j in range(1, fan_value):
-            if i + j >= size:
-                break
+        for i in range(size):
+            f1 = f_list[i]
+            t1 = t_list[i]
 
-            t2 = float(time_vals[i + j])
-            dt = t2 - t1
+            for j in range(1, fan_value):
+                if i + j >= size:
+                    break
 
-            if dt <= 0 or dt > max_dt_s:
-                continue
+                t2 = t_list[i + j]
+                dt = t2 - t1
 
-            f2 = int(freq_vals[i + j])
+                if dt <= 0 or dt > max_dt_s:
+                    continue
 
-            h = f"{f1}|{f2}|{int(dt * 100)}"
-            hashes.append({"hash": h, "time": round(t1, 3)})
+                f2 = f_list[i + j]
+                h = f"{f1}|{f2}|{int(dt * 100)}"
+                hashes.append({"hash": h, "time": round(t1, 3)})
 
     return hashes

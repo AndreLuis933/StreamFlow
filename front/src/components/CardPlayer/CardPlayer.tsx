@@ -97,7 +97,7 @@ const CardPlayer = ({
           creditsDurationRef,
           onVideoEnd,
         });
-      }, 2000);
+      }, 20000);
 
       return () => {
         clearTimeout(timeoutId);
