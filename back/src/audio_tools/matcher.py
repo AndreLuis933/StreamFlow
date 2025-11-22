@@ -113,10 +113,4 @@ def match_hashes_find_timing(stored_hash_map, target_hashes, dt_bucket_ms=100, g
     end_sec = best_cluster[-1]
     duration = end_sec - start_sec
 
-    return (
-        {
-            "start_sec": start_sec,
-            "end_sec": end_sec,
-        },
-        duration,
-    )
+    return {"start_sec": start_sec, "end_sec": end_sec, "duration": duration}

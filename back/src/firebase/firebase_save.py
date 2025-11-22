@@ -8,6 +8,7 @@ from src.config.firebase import db
 
 
 def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):
+    return
     episodio_base = int(episodio_base)  # garante que é número
 
     fingerprint_json = json.dumps(fingerprint)
@@ -34,6 +35,7 @@ def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):
 
 def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
     """Atualiza metadados quando um hash é reutilizado para outro episódio."""
+    return
     doc_ref = db.collection("animes").document(anime_nome).collection("hashes").document(doc_id)
     doc = doc_ref.get()
 
@@ -65,6 +67,7 @@ def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
 
 
 def save_to_firebase_result(fingerprint, nome, ep, type_):
+    return
     doc_ref = db.collection("animes").document(nome).collection(type_)
 
     doc_ref.document(ep).set(fingerprint)
