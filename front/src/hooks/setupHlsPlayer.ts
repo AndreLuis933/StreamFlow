@@ -13,66 +13,81 @@ export const setupHlsPlayer = ({ src, video }: SetupHlsPlayerProps) => {
   }
 
   const hls = new Hls({
-    // 1. Estratégia de Buffer Agressiva (Seu objetivo)
-    // Tenta manter 60s garantidos, mas permite crescer até 600s (10 min) ou mais
     maxBufferLength: 60,
     maxMaxBufferLength: 600,
-    maxBufferSize: 150 * 1000 * 1000, // 120MB (Cuidado: muito alto pode travar o browser em mobile)
+    maxBufferSize: 150 * 1000 * 1000,
 
-    // 2. Tolerância ao Proxy (CRUCIAL)
-    // Aumenta o tempo que o HLS espera o proxy começar a responder antes de dar erro
-    fragLoadingTimeOut: 65000, // 20s (padrão é 20s, mas garanta que não está baixo)
-    manifestLoadingTimeOut: 65000,
-    levelLoadingTimeOut: 65000,
+    fragLoadingMaxRetry: 10,
+    fragLoadingRetryDelay: 1000,
+    fragLoadingTimeOut: 20000,
 
-    // 3. Evitar o "Stall" (Travamento)
-    // Se faltar um pedacinho de 0.5s, ele pula em vez de travar a tela
     maxBufferHole: 0.5,
 
-    // Se travar, tenta empurrar o vídeo um pouco mais agressivamente
-    nudgeOffset: 0.2,
-    nudgeMaxRetry: 5,
-
-    // 4. Configurações de Rede
-    enableWorker: true, // Usa webworkers para não travar a UI enquanto baixa muito
-    lowLatencyMode: false, // Desativa modo low-latency (essencial para VOD estável)
+    enableWorker: true,
+    lowLatencyMode: false,
     autoStartLoad: true,
   });
 
   hls.loadSource(src);
   hls.attachMedia(video);
 
-  hls.on(Hls.Events.ERROR, (_, data) => {
-    // Ignora logs de stall se o Hls.js estiver tentando recuperar (nudge)
-    if (
-      data.details === "bufferStalledError" ||
-      data.details === "bufferNudgeOnStall"
-    ) {
-      return;
-    }
+hls.on(Hls.Events.ERROR, (event, data) => {
+  if (data.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) return;
 
-    // Se for um timeout, agora sabemos que demorou mais de 65s (o proxy falhou mesmo)
-    if (data.type === Hls.ErrorTypes.NETWORK_ERROR && data.fatal) {
+  if (
+    data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR ||
+    data.details === Hls.ErrorDetails.FRAG_LOAD_TIMEOUT
+  ) {
+    if (!data.fatal) return;
+
+    const badFrag = data.frag;
+
+    if (!badFrag) {
       console.warn(
-        "Timeout excedido (Proxy demorou +65s ou falhou). Tentando reconectar..."
+        "Erro de fragmento detectado, mas sem dados do fragmento. Ignorando."
       );
-      hls.startLoad();
+      return;
+    }
+    // ---------------------
+
+    const currentTime = video.currentTime;
+    const bufferGap = badFrag.start - currentTime;
+
+    // CENÁRIO 1: O erro está longe (Pre-load)
+    if (bufferGap > 2.0) {
+      console.warn(
+        `Segmento futuro ${badFrag.sn} falhou. O download vai pausar.`
+      );
       return;
     }
 
-    if (data.fatal) {
-      switch (data.type) {
-        case Hls.ErrorTypes.MEDIA_ERROR:
-          console.warn("Erro de mídia fatal, tentando recuperar...");
-          hls.recoverMediaError();
-          break;
-        default:
-          console.error("Erro fatal irrecuperável.");
-          hls.destroy();
-          break;
-      }
+    // CENÁRIO 2: O usuário chegou no buraco
+    const jumpToTime = badFrag.start + badFrag.duration + 0.1;
+
+    console.warn(
+      `PULANDO SEGMENTO RUIM: De ${currentTime.toFixed(
+        2
+      )}s para ${jumpToTime.toFixed(2)}s`
+    );
+
+    video.currentTime = jumpToTime;
+    hls.startLoad();
+    return;
+  }
+
+  if (data.fatal) {
+    switch (data.type) {
+      case Hls.ErrorTypes.MEDIA_ERROR:
+        console.warn("Erro de mídia fatal, tentando recuperar...");
+        hls.recoverMediaError();
+        break;
+      default:
+        console.error("Erro fatal irrecuperável.");
+        hls.destroy();
+        break;
     }
-  });
+  }
+});
 
   return () => {
     hls.destroy();

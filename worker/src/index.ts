@@ -117,24 +117,42 @@ app.get('/m3u8', async (c) => {
 app.get('/seg', async (c) => {
 	return tryCache(c, 86400, async () => {
 		const u = c.req.query('u');
-		if (!u) return c.text("Parâmetro 'u' é obrigatório", 400);
+		if (!u) return c.text('URL missing', 400);
 
 		const targetUrl = decodeURIComponent(u);
 
 		try {
-			const response = await fetch(targetUrl, { headers: FIXED_HEADERS });
-			if (!response.ok) return c.text(`Falha ao obter segmento (${response.status})`, 502);
+			// Adicione um timeout no fetch do backend também, para não travar a thread
+			const controller = new AbortController();
+			const id = setTimeout(() => controller.abort(), 15000); // 15s timeout no backend
+
+			const response = await fetch(targetUrl, {
+				headers: FIXED_HEADERS,
+				signal: controller.signal,
+			});
+			clearTimeout(id);
+
+			// Se o servidor de origem disser 404, repasse 404.
+			// Isso faz o HLS falhar rápido nessa tentativa e ir pra próxima (ou pular se acabar as tentativas)
+			if (response.status === 404) {
+				return c.text('Segment not found', 404);
+			}
+
+			if (!response.ok) {
+				return c.text(`Upstream error: ${response.status}`, 502);
+			}
 
 			return new Response(response.body, {
-				status: response.status,
+				status: 200,
 				headers: {
 					'Access-Control-Allow-Origin': '*',
 					'Content-Type': 'video/MP2T',
-					'Cache-Control': 'public, max-age=86400', // Importante para o cache funcionar
+					'Cache-Control': 'public, max-age=86400',
 				},
 			});
 		} catch (e: any) {
-			return c.text(`Timeout ou Erro: ${e.message}`, 504);
+			// Se der timeout no backend, retorna 504. O HLS entende isso como erro de rede e tenta de novo.
+			return c.text(`Proxy Timeout: ${e.message}`, 504);
 		}
 	});
 });
