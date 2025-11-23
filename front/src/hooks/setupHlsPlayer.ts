@@ -31,7 +31,7 @@ export const setupHlsPlayer = ({ src, video }: SetupHlsPlayerProps) => {
   hls.loadSource(src);
   hls.attachMedia(video);
 
-hls.on(Hls.Events.ERROR, (event, data) => {
+hls.on(Hls.Events.ERROR, (_, data) => {
   if (data.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) return;
 
   if (
