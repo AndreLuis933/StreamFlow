@@ -3,7 +3,7 @@ import time
 from contextlib import contextmanager
 
 # --- CONFIGURAÇÃO DE LOGGING DE PERFORMANCE ---
-ENABLE_PERF_LOGS = True  # Mude para False para desativar todos os logs de performance
+ENABLE_PERF_LOGS = False  # Mude para False para desativar todos os logs de performance
 
 # Configuração do logger isolado
 perf_logger = logging.getLogger("performance_tracker")
