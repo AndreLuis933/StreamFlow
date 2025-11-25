@@ -1,14 +1,14 @@
 // hooks/listeners/creditsButtonListeners.ts
 import type { CleanupFn } from "./videoListeners";
 import { attachSkipSegmentButton } from "./skipSegmentButtonListener";
-
+import { fetchSegmentDurationFirebase } from "@/services/firebase";
 export function attachCreditsButton(params: {
   player: any;
   video: HTMLVideoElement;
   fetchCreditsDuration: (
     nome: string,
     ep: string
-  ) => Promise<{ start_sec: number; end_sec: number } | null>;
+  ) => Promise<void>;
   nome: string;
   ep: string;
   creditsButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
@@ -29,9 +29,7 @@ export function attachCreditsButton(params: {
     onVideoEnd,
   } = params;
   function onClick() {
-    if (
-      creditsDurationRef.current
-    ) {
+    if (creditsDurationRef.current) {
       if (player.duration - creditsDurationRef.current.end_sec <= 30) {
         player.currentTime = creditsDurationRef.current.end_sec;
         onVideoEnd();
@@ -40,13 +38,13 @@ export function attachCreditsButton(params: {
       }
     }
   }
+  const fetchSegmentDuration = () =>
+    fetchSegmentDurationFirebase(nome, ep, "credits", fetchCreditsDuration);
 
   return attachSkipSegmentButton({
     player,
     video,
-    fetchSegmentDuration: fetchCreditsDuration,
-    nome,
-    ep,
+    fetchSegmentDuration,
     buttonRef: creditsButtonRef,
     segmentDurationRef: creditsDurationRef,
     label: "Pular Créditos",

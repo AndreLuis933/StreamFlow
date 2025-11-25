@@ -2,7 +2,7 @@ import io
 
 import av
 import numpy as np
-from src.config.config import SR_TARGET
+from config.config import SR_TARGET
 
 
 def converter_buffer_to_numpy(buffer_completo):

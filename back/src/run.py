@@ -1,16 +1,13 @@
-import asyncio
 import gc
 
-from .audio_tools.audio_finder import find_pattern_in_audio
-from .audio_tools.segment_extractor import extract_and_save_common_segment
-from .config.loggin import measure_time
-from .firebase.firebase_consult import buscar_hashes_proximos, consult_seguement
-from .firebase.firebase_save import atualizar_hash_uso
-from .network.baixar_video import baixar_hls_para_buffer
-from .utils.descomprimir import descomprimir_fingerprint
-from .utils.extrair_audio import converter_buffer_to_numpy
-
-semaphore = asyncio.Semaphore(1)
+from audio_tools.audio_finder import find_pattern_in_audio
+from audio_tools.segment_extractor import extract_and_save_common_segment
+from config.loggin import measure_time
+from firebase.firebase_consult import buscar_hashes_proximos, consult_seguement
+from firebase.firebase_save import atualizar_hash_uso
+from network.baixar_video import baixar_hls_para_buffer
+from utils.descomprimir import descomprimir_fingerprint
+from utils.extrair_audio import converter_buffer_to_numpy
 
 
 async def audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_):
@@ -100,55 +97,53 @@ async def audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, t
 
 
 async def find_seguement_request(anime, ep, type_, out_audio_path=None):
-    async with semaphore:
-        print(type_)
-        result = consult_seguement(anime, ep, type_)
-        if result is not None:
-            return result
+    result = consult_seguement(anime, ep, type_)
+    if result is not None:
+        return result
 
-        ep_num = int(ep)
-        ep_formatado = str(ep_num).zfill(3)
+    ep_num = int(ep)
+    ep_formatado = str(ep_num).zfill(3)
 
-        candidatos = buscar_hashes_proximos(anime, ep_num, type_)
+    candidatos = buscar_hashes_proximos(anime, ep_num, type_)
 
-        url_atual = (
-            f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{anime}/{ep_formatado}.mp4/media-1/stream.m3u8"
-        )
+    url_atual = (
+        f"https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/animes/{anime}/{ep_formatado}.mp4/media-1/stream.m3u8"
+    )
 
-        # Log: Baixar Audio Atual
-        with measure_time(f"Baixar vidio Atual (Ep {ep})"):
-            buffer_ts, init_duration = await baixar_hls_para_buffer(url_atual, type_, duration_sec=420)
-        with measure_time(f"Converter Audio Atual (Ep {ep})"):
-            if buffer_ts:
-                # 2. Converte o buffer para áudio WAV
-                audio_atual = converter_buffer_to_numpy(buffer_ts)
-                del buffer_ts
-                gc.collect()
+    # Log: Baixar Audio Atual
+    with measure_time(f"Baixar vidio Atual (Ep {ep})"):
+        buffer_ts, init_duration = await baixar_hls_para_buffer(url_atual, type_, duration_sec=420)
+    with measure_time(f"Converter Audio Atual (Ep {ep})"):
+        if buffer_ts:
+            # 2. Converte o buffer para áudio WAV
+            audio_atual = converter_buffer_to_numpy(buffer_ts)
+            del buffer_ts
+            gc.collect()
 
-        if audio_atual is None:
-            print("Falha ao baixar o áudio atual")
-            return None
+    if audio_atual is None:
+        print("Falha ao baixar o áudio atual")
+        return None
 
-        if candidatos:
-            for i, candidato in enumerate(candidatos):
-                fingerprint_salvo = descomprimir_fingerprint(candidato["fingerprint_data"])
+    if candidatos:
+        for i, candidato in enumerate(candidatos):
+            fingerprint_salvo = descomprimir_fingerprint(candidato["fingerprint_data"])
 
-                # Log: Comparar com candidato
-                with measure_time(f"Comparar Candidato {i + 1}"):
-                    intro = find_pattern_in_audio(
-                        audio_atual,
-                        fingerprint_salvo,
-                        anime,
-                        ep_formatado,
-                        type_,
-                        init_duration,
-                    )
+            # Log: Comparar com candidato
+            with measure_time(f"Comparar Candidato {i + 1}"):
+                intro = find_pattern_in_audio(
+                    audio_atual,
+                    fingerprint_salvo,
+                    anime,
+                    ep_formatado,
+                    type_,
+                    init_duration,
+                )
 
-                if intro is not None:
-                    atualizar_hash_uso(anime, candidato["doc_id"], ep_num)
-                    return intro
+            if intro is not None:
+                atualizar_hash_uso(anime, candidato["doc_id"], ep_num)
+                return intro
 
-            # Se falhar nos candidatos, vai para o hash completo
-            return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)
-
+        # Se falhar nos candidatos, vai para o hash completo
         return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)
+
+    return await audio_hash(ep_num, ep_formatado, anime, audio_atual, out_audio_path, type_)

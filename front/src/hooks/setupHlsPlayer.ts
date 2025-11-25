@@ -17,7 +17,7 @@ export const setupHlsPlayer = ({ src, video }: SetupHlsPlayerProps) => {
     maxMaxBufferLength: 600,
     maxBufferSize: 150 * 1000 * 1000,
 
-    fragLoadingMaxRetry: 10,
+    fragLoadingMaxRetry: 5,
     fragLoadingRetryDelay: 1000,
     fragLoadingTimeOut: 20000,
 

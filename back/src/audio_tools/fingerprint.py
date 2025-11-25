@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
-from src.config.loggin import measure_time
+from config.loggin import measure_time
 
 
 def fast_max_filter_2d(img: np.ndarray, size: tuple) -> np.ndarray:

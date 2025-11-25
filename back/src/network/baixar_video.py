@@ -12,9 +12,6 @@ async def baixar_segmento(client, i, seg_url, headers):
     return (i, data)
 
 
-semaphore = asyncio.Semaphore(20)
-
-
 async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -34,6 +31,8 @@ async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
         return None, None
 
     segmentos_data = {}
+
+    semaphore = asyncio.Semaphore(20)
 
     # Função interna para usar o semáforo global
     async def download_with_semaphore(client, i, seg):

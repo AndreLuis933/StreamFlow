@@ -10,7 +10,8 @@ import { parseAnimeResponse } from "@/utils/prosessData";
 
 const apiANALYSIS = axiosLib.create({
   baseURL: import.meta.env.VITE_API_BASE_URL_ANALYSIS,
-  timeout: 100000,
+  timeout: 10000,
+  headers: { "x-api-key": "4RGVAhuH5N2fZpRGdvVFS4Z5DHa4ndG9UItfBRac" },
 });
 
 export async function fetchAnimeBySlug(slug: string, page = 1) {
@@ -48,23 +49,16 @@ export async function fetchAnimeBySearch(search: string) {
   return data;
 }
 
-interface Response {
-  end_sec: number;
-  start_sec: number;
-}
-
 export async function fetchIntroDuration(anime: string, ep: string) {
-  const { data } = await apiANALYSIS.get<Response | null>(
-    `intro?anime=${encodeURIComponent(anime)}&ep=${ep}`,
-    { timeout: 60000 }
+  const { data } = await apiANALYSIS.get<void>(
+    `intro?anime=${encodeURIComponent(anime)}&ep=${ep}`
   );
   return data;
 }
 
 export async function fetchCreditsDuration(anime: string, ep: string) {
-  const { data } = await apiANALYSIS.get<Response | null>(
+  const { data } = await apiANALYSIS.get<void>(
     `credits?anime=${encodeURIComponent(anime)}&ep=${ep}`,
-    { timeout: 60000 }
   );
   return data;
 }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.config.config import (
+from config.config import (
     DT_BUCKET_MS,
     FAN_VALUE,
     GAP_THRESHOLD_S,
@@ -13,8 +13,8 @@ from src.config.config import (
     PEAK_NEIGHBORHOOD_SIZE,
     SR_TARGET,
 )
-from src.config.loggin import measure_time
-from src.firebase.firebase_save import save_to_firebase_hash, save_to_firebase_result
+from config.loggin import measure_time
+from firebase.firebase_save import save_to_firebase_hash, save_to_firebase_result
 
 from .fingerprint import fingerprint_audio_array
 from .matcher import build_hash_map, match_fingerprints_and_estimate_duration

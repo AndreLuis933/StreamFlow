@@ -1,14 +1,12 @@
 // hooks/listeners/introButtonListeners.ts
 import type { CleanupFn } from "./videoListeners";
 import { attachSkipSegmentButton } from "./skipSegmentButtonListener";
+import { fetchSegmentDurationFirebase } from "@/services/firebase";
 
 export function attachIntroButton(params: {
   player: any;
   video: HTMLVideoElement;
-  fetchIntroDuration: (
-    nome: string,
-    ep: string
-  ) => Promise<{ start_sec: number; end_sec: number } | null>;
+  fetchIntroDuration: (nome: string, ep: string) => Promise<void>;
   nome: string;
   ep: string;
   introButtonRef: React.MutableRefObject<HTMLButtonElement | null>;
@@ -26,18 +24,19 @@ export function attachIntroButton(params: {
     introButtonRef,
     introDurationRef,
   } = params;
-  
+
   function onClick() {
     if (introDurationRef.current) {
       player.currentTime = introDurationRef.current.end_sec;
     }
   }
+
+  const fetchSegmentDuration = () =>
+    fetchSegmentDurationFirebase(nome, ep, "intro", fetchIntroDuration);
   return attachSkipSegmentButton({
     player,
     video,
-    fetchSegmentDuration: fetchIntroDuration,
-    nome,
-    ep,
+    fetchSegmentDuration,
     buttonRef: introButtonRef,
     segmentDurationRef: introDurationRef,
     label: "Pular Abertura",

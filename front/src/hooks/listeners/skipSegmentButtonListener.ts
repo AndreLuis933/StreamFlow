@@ -1,17 +1,14 @@
 // hooks/listeners/skipSegmentButtonListener.ts
+
 import type { CleanupFn } from "./videoListeners";
 
 type FetchSegmentDuration = (
-  nome: string,
-  ep: string
 ) => Promise<{ start_sec: number; end_sec: number } | null>;
 
 export function attachSkipSegmentButton({
   player,
   video,
   fetchSegmentDuration,
-  nome,
-  ep,
   buttonRef,
   segmentDurationRef,
   label,
@@ -20,8 +17,6 @@ export function attachSkipSegmentButton({
   player: any; // Plyr instance
   video: HTMLVideoElement;
   fetchSegmentDuration: FetchSegmentDuration;
-  nome: string;
-  ep: string;
   buttonRef: React.MutableRefObject<HTMLButtonElement | null>;
   segmentDurationRef: React.MutableRefObject<{
     start_sec: number;
@@ -31,7 +26,8 @@ export function attachSkipSegmentButton({
   onClick:()=>void;
 }): CleanupFn {
   async function initializeCustomButton() {
-    const duracao = await fetchSegmentDuration(nome, ep);
+    const duracao = await fetchSegmentDuration();
+    console.log(duracao)
     if (!duracao) return;
     segmentDurationRef.current = duracao;
 

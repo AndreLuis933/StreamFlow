@@ -8,6 +8,7 @@ import {
   Timestamp,
   getDoc,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 
@@ -101,4 +102,81 @@ export const isFavorite = async (
     console.error("Error checking favorite:", error);
     return false;
   }
+};
+
+type SegmentDuration = { start_sec: number; end_sec: number };
+
+// Função que dispara a Lambda. Ela não precisa retornar a duração.
+type FireJobFn = (nome: string, ep: string) => Promise<void>;
+
+export const fetchSegmentDurationFirebase = async (
+  nome: string,
+  ep: string,
+  tipo: string,
+  fireJob: FireJobFn
+): Promise<SegmentDuration | null> => {
+  const docRef = doc(db, "animes", nome, tipo, ep);
+
+  // 1) TENTA PEGAR O DOCUMENTO PRIMEIRO (resposta rápida se já existir)
+  const existingSnap = await getDoc(docRef);
+
+  if (existingSnap.exists()) {
+    const data = existingSnap.data() as any;
+    if (
+      typeof data.start_sec === "number" &&
+      typeof data.end_sec === "number"
+    ) {
+      return {
+        start_sec: data.start_sec,
+        end_sec: data.end_sec,
+      };
+    }
+  }
+
+  await fireJob(nome, ep);
+
+  // 3) Fica escutando até o documento existir (ou timeout)
+  return new Promise<SegmentDuration | null>((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      unsubscribe();
+      reject(new Error(`Timeout ao consultar por ${tipo}`));
+    }, 60_000);
+
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (!docSnap.exists()) {
+          // Ainda não criou o doc; espera mais
+          return;
+        }
+
+        const data = docSnap.data() as any;
+
+        if (
+          typeof data.start_sec === "number" &&
+          typeof data.end_sec === "number"
+        ) {
+          clearTimeout(timeoutId);
+          unsubscribe();
+          resolve({
+            start_sec: data.start_sec,
+            end_sec: data.end_sec,
+          });
+        } else {
+          clearTimeout(timeoutId);
+          unsubscribe();
+          reject(
+            new Error(
+              "Documento no Firestore não tem start_sec/end_sec válidos"
+            )
+          );
+        }
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        unsubscribe();
+        reject(error);
+      }
+    );
+  });
 };

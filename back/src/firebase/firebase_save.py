@@ -3,8 +3,8 @@ import json
 import time
 import zlib
 
+from config.firebase import db
 from firebase_admin import firestore
-from src.config.firebase import db
 
 
 def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):

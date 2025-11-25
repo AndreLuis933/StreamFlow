@@ -1,5 +1,5 @@
 from google.cloud.firestore_v1 import FieldFilter
-from src.config.firebase import db
+from config.firebase import db
 
 
 def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, type_, janela: int = 30):
