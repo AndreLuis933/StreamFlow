@@ -2,8 +2,10 @@
 
 import type { CleanupFn } from "./videoListeners";
 
-type FetchSegmentDuration = (
-) => Promise<{ start_sec: number; end_sec: number } | null>;
+type FetchSegmentDuration = () => Promise<{
+  start_sec: number;
+  end_sec: number;
+} | null>;
 
 export function attachSkipSegmentButton({
   player,
@@ -23,32 +25,29 @@ export function attachSkipSegmentButton({
     end_sec: number;
   } | null>;
   label: string;
-  onClick:()=>void;
+  onClick: () => void;
 }): CleanupFn {
   async function initializeCustomButton() {
     const duracao = await fetchSegmentDuration();
-    console.log(duracao)
     if (!duracao) return;
     segmentDurationRef.current = duracao;
 
-    const container = player.elements.container;
+    const container = player?.elements?.container;
     if (!container) return;
 
-    if (!buttonRef.current) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "custom-center-button";
-      btn.setAttribute("aria-label", label);
-      btn.textContent = label;
-      btn.style.display = "none";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "custom-center-button";
+    btn.setAttribute("aria-label", label);
+    btn.textContent = label;
+    btn.style.display = "none";
 
-      btn.addEventListener("click", () => {
-        onClick();
-      });
+    btn.addEventListener("click", () => {
+      onClick();
+    });
 
-      container.appendChild(btn);
-      buttonRef.current = btn;
-    }
+    container.appendChild(btn);
+    buttonRef.current = btn;
   }
 
   const handleTimeUpdate = () => {
@@ -64,7 +63,6 @@ export function attachSkipSegmentButton({
       }
     }
   };
-
   if (player.ready) {
     initializeCustomButton();
   } else {

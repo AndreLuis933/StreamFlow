@@ -5,6 +5,7 @@ import { EpNavButton } from "@/components/EpNavButtons";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
 import { Page, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
+import { formatarTempoDecorrido } from "@/utils/timePass";
 const VITE_API_BASE_URL_PROXY = import.meta.env.VITE_API_BASE_URL_PROXY;
 type RouteParams = { IdEp: string };
 
@@ -24,11 +25,6 @@ export default function PlayerPage() {
     return <></>;
   }
   const ep = Number(data.n_episodio);
-  const dataPassada = new Date(data.data_registro);
-  const dataAtual = new Date();
-
-  const diferencaEmMs = dataAtual.getTime() - dataPassada.getTime();
-  const diasAtras = Math.floor(diferencaEmMs / (1000 * 60 * 60 * 24));
 
   const thumb = getEpisodeImageUrlBySlug(data.anime.slug_serie, ep);
 
@@ -57,7 +53,7 @@ export default function PlayerPage() {
             }}
           />
           <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
-            Postado ha {diasAtras} dias
+            Postado {formatarTempoDecorrido(new Date(data.data_registro))}
           </Typography>
 
           <TitleLink to={`/a/${data.anime.generate_id}`}>

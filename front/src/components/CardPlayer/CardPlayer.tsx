@@ -9,10 +9,8 @@ import { waitForPlayer } from "@/utils/waitForPlayer";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";
 import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
-import {
-  attachVideoListeners,
-  type CleanupFn,
-} from "@/hooks/listeners/videoListeners";
+import { attachVideoListeners } from "@/hooks/listeners/videoListeners";
+import { plyrOptions } from "@/consts/const";
 
 interface CardPlayerProps {
   thumbnail: string;
@@ -47,12 +45,15 @@ const CardPlayer = ({
   const { getProgress, hasRestoredProgress, saveProgress } =
     useVideoProgress(videoId);
 
+  useEffect(() => {
+    hasRestoredProgress.current = false;
+  }, [videoId, hasRestoredProgress]);
+
   const restoreProgress = useCallback(
     (video: HTMLVideoElement) => {
       if (hasRestoredProgress.current) return;
-
       const savedTime = getProgress();
-      if (savedTime > 0 && video.duration) {
+      if (savedTime > 0) {
         video.currentTime = savedTime;
         hasRestoredProgress.current = true;
       }
@@ -61,97 +62,79 @@ const CardPlayer = ({
   );
 
   useEffect(() => {
-    return waitForPlayer(plyrRef, (_, video) => {
-      return attachVideoListeners({ video, saveProgress, restoreProgress });
-    });
-  }, [videoId]);
-
-  useEffect(() => {
-    return waitForPlayer(plyrRef, () => {
-      return attachKeyboardListeners({ onVideoEnd });
-    });
-  }, [videoId]);
-
-  useEffect(() => {
     return waitForPlayer(plyrRef, (player, video) => {
-      if (!ep) return;
-      const cleanupIntro = attachIntroButton({
-        player,
+      // 1. Configurar HLS (Prioridade máxima para carregar o vídeo)
+      const cleanupHls = setupHlsPlayer({ src, video });
+
+      // 2. Listeners de Vídeo (Progresso, Save/Restore)
+      const cleanupVideoListeners = attachVideoListeners({
         video,
-        fetchIntroDuration,
-        nome,
-        ep,
-        introButtonRef,
-        introDurationRef,
+        saveProgress,
+        restoreProgress,
       });
 
-      let cleanupCredits: CleanupFn;
-      const timeoutId = setTimeout(() => {
-        cleanupCredits = attachCreditsButton({
+      // 3. Listeners de Teclado
+      const cleanupKeyboard = attachKeyboardListeners({ onVideoEnd });
+
+      // 4. Botão de Intro
+      let cleanupIntro: (() => void) | undefined;
+      if (ep) {
+        cleanupIntro = attachIntroButton({
           player,
           video,
-          fetchCreditsDuration,
+          fetchIntroDuration,
           nome,
           ep,
-          creditsButtonRef,
-          creditsDurationRef,
-          onVideoEnd,
+          introButtonRef,
+          introDurationRef,
         });
-      }, 10000);
+      }
 
+      // 5. Botão de Créditos (com delay para não pesar na inicialização)
+      let cleanupCredits: (() => void) | undefined;
+      let creditsTimeoutId: NodeJS.Timeout | undefined;
+
+      if (ep) {
+        creditsTimeoutId = setTimeout(() => {
+          cleanupCredits = attachCreditsButton({
+            player,
+            video,
+            fetchCreditsDuration,
+            nome,
+            ep,
+            creditsButtonRef,
+            creditsDurationRef,
+            onVideoEnd,
+          });
+        }, 1000); // Reduzi para 1s, 10s pode ser muito se o ep for curto ou usuário pular
+      }
+
+      // --- CLEANUP GERAL ---
+      // Quando o componente desmontar (troca de ep), limpa tudo na ordem inversa
       return () => {
-        clearTimeout(timeoutId);
-        cleanupIntro?.();
+        if (creditsTimeoutId) clearTimeout(creditsTimeoutId);
+
         cleanupCredits?.();
+        cleanupIntro?.();
+        cleanupKeyboard?.();
+        cleanupVideoListeners?.();
+        cleanupHls?.(); // HLS por último para garantir que listeners não tentem acessar vídeo morto
       };
     });
   }, [videoId]);
 
-  useEffect(() => {
-    return waitForPlayer(plyrRef, (_, video) => {
-      return setupHlsPlayer({
-        src,
-        video,
-      });
-    });
-  }, [videoId]);
-
-  useEffect(() => {
-    hasRestoredProgress.current = false;
-  }, [videoId]);
-
   return (
-    <Plyr
-      ref={plyrRef}
-      source={{
-        type: "video",
-        sources: [],
-        poster: thumbnail,
-      }}
-      options={{
-        keyboard: {
-          focused: true,
-          global: true,
-        },
-        seekTime: 10,
-        tooltips: { controls: true, seek: true },
-        ratio: "16:9",
-        controls: [
-          "play",
-          "progress",
-          "current-time",
-          "mute",
-          "volume",
-          "settings",
-          "fullscreen",
-        ],
-        settings: ["speed"],
-        speed: {
-          selected: 1,
-          options: [0.5, 0.75, 1, 1.25, 1.5, 2],
-        },
-      }}
-    />
+    <div key={videoId} style={{ width: "100%", height: "auto" }}>
+      <Plyr
+        ref={plyrRef}
+        source={{
+          type: "video",
+          sources: [],
+          poster: thumbnail,
+        }}
+        options={plyrOptions}
+      />
+    </div>
   );
 };
 
