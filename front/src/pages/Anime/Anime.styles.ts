@@ -1,6 +1,6 @@
 import { Box, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/material/styles";
-
+import styled_emotion from "@emotion/styled";
 // Container principal do card de anime (hero/capa)
 export const AnimeHero = styled(Box)(() => ({
   display: "flex",
@@ -198,3 +198,38 @@ export const FavoriteText = styled(Typography)({
     fontSize: 18,
   },
 });
+
+export const FilterContainer = styled_emotion(Box)`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+
+export const FilterLabel = styled_emotion.span`
+  color: #fff;
+  font-size: 14px;
+  margin-right: 8px;
+`;
+
+export const OrderButton = styled_emotion.button<{ selected: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: ${({ selected }) => (selected ? "#333333" : "transparent")};
+  color: #fff;
+  border: hidden ;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ selected }) => (selected ? "#222" : "#333")};
+  }
+
+  svg {
+    font-size: 16px;
+  }
+`;

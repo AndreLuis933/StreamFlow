@@ -1,53 +1,70 @@
 // src/hooks/Anime.hooks.ts
 import { useEffect, useState, useCallback } from "react";
-import type { Episode } from "@/types/api";
+import type { DetalhesAnimeResponse, Episode } from "@/types/api";
 import { fetchAnimeBySlug, fetchDetalhesAnimeBySlug } from "@/services/anime";
-import { useQuery } from "@tanstack/react-query";
 
-export function useAnimeEpisodes(slug?: string) {
+export function useAnimeEpisodes(slug: string, order: string) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(true);
+  const [loadingDetails, setLoadingDetails] = useState(true);
   const [error, setError] = useState<boolean>(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
+  const [data, setData] = useState<
+    DetalhesAnimeResponse["pageProps"]["data"] | null
+  >(null);
 
-  const { data } = useQuery({
-    queryKey: ["anime", slug],
-    queryFn: async () => {
-      if (!slug) throw new Error("Slug é obrigatório");
-      const result = await fetchDetalhesAnimeBySlug(slug);
-      return result.pageProps.data;
-    },
-    enabled: !!slug,
-    staleTime: 1000 * 60 * 5,
-  });
+  useEffect(() => {
+    if (!slug) return;
+
+    let active = true;
+
+    async function fetchDetails() {
+      setLoadingDetails(true);
+      try {
+        const result = await fetchDetalhesAnimeBySlug(slug);
+        if (!active) return;
+        setData(result.pageProps.data);
+      } catch (err) {
+        console.error(err);
+        if (active) setError(true);
+      } finally {
+        if (active) setLoadingDetails(false);
+      }
+    }
+
+    fetchDetails();
+    return () => {
+      active = false;
+    };
+  }, [slug]);
 
   // funçao para carregar mais
   const loadMoreEpisodes = useCallback(async () => {
-    if (!slug || !hasNextPage || loading) return;
-    setLoading(true);
+    if (!slug || !hasNextPage || loadingEpisodes) return;
+    setLoadingEpisodes(true);
     setError(false);
     try {
-      const res = await fetchAnimeBySlug(slug, page);
+      const res = await fetchAnimeBySlug(slug, page, order);
       setEpisodes((prev) => [...prev, ...res.data]);
       setHasNextPage(res.meta.hasNextPage);
       setPage((prev) => prev + 1);
     } catch (err) {
       setError(true);
     } finally {
-      setLoading(false);
+      setLoadingEpisodes(false);
     }
-  }, [slug, page, hasNextPage, loading]);
+  }, [slug, page, hasNextPage, loadingEpisodes, order]);
 
   //primeira busca
   useEffect(() => {
     let active = true;
     async function run() {
       if (!slug) return;
-      setLoading(true);
+      setLoadingEpisodes(true);
       setError(false);
       try {
-        const res = await fetchAnimeBySlug(slug, 1);
+        const res = await fetchAnimeBySlug(slug, 1, order);
         if (active) {
           setEpisodes(res.data);
           setHasNextPage(res.meta.hasNextPage);
@@ -56,14 +73,14 @@ export function useAnimeEpisodes(slug?: string) {
       } catch (err) {
         if (active) setError(true);
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoadingEpisodes(false);
       }
     }
     run();
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [slug, order]);
 
   // carregar mais com o scroll
   useEffect(() => {
@@ -82,5 +99,5 @@ export function useAnimeEpisodes(slug?: string) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [hasNextPage, loadMoreEpisodes]);
 
-  return { episodes, loading, error, data };
+  return { episodes, loadingEpisodes, loadingDetails, error, data };
 }

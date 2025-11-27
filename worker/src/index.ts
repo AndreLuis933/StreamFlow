@@ -176,9 +176,10 @@ app.get('/animes', async (c) => {
 	return tryCache(c, 300, async () => {
 		const slug = c.req.query('slug');
 		const page = c.req.query('page');
-		if (!slug || !page) return c.json({ error: "Missing 'slug' or 'page'" }, 400);
+		const order = c.req.query('order');
+		if (!slug || !page || !order) return c.json({ error: "Missing 'slug' or 'page' or 'order'" }, 400);
 
-		const response = await fetch(`https://apiv3-prd.api-vidios.net/animes/${slug}/episodes?page=${page}&order=desc`, {
+		const response = await fetch(`https://apiv3-prd.api-vidios.net/animes/${slug}/episodes?page=${page}&order=${order}`, {
 			headers: FIXED_HEADERS,
 		});
 		const data = await response.json();
@@ -186,7 +187,6 @@ app.get('/animes', async (c) => {
 		return c.json(data, 200, { 'Cache-Control': 'public, max-age=300' });
 	});
 });
-
 async function fetchWithBuildId(c: any, path: string, queryParam: string) {
 	try {
 		let buildId = await getBuildId();
@@ -204,6 +204,7 @@ async function fetchWithBuildId(c: any, path: string, queryParam: string) {
 			headers: {
 				'Content-Type': 'application/json',
 				'Access-Control-Allow-Origin': '*',
+				'Cache-Control': 'public, max-age=300',
 			},
 		});
 	} catch (e: any) {

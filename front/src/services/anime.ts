@@ -14,9 +14,9 @@ const apiANALYSIS = axiosLib.create({
   headers: { "x-api-key": "4RGVAhuH5N2fZpRGdvVFS4Z5DHa4ndG9UItfBRac" },
 });
 
-export async function fetchAnimeBySlug(slug: string, page = 1) {
+export async function fetchAnimeBySlug(slug: string, page:number,order:string) {
   const { data } = await axios.get<ApiAnimeResponse>(
-    `/animes?slug=${encodeURIComponent(slug)}&page=${page}`
+    `/animes?slug=${encodeURIComponent(slug)}&page=${page}&order=${order}`
   );
   return data;
 }
