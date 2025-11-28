@@ -1,4 +1,6 @@
 export function attachFullscreenOrientation(player: Plyr) {
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  if (!isMobile) return;
   if (typeof window === "undefined") return () => {};
 
   const handleEnterFullscreen = () => {
