@@ -11,6 +11,7 @@ import { attachIntroButton } from "@/hooks/listeners/introButtonListeners";
 import { attachCreditsButton } from "@/hooks/listeners/creditsButtonListeners";
 import { attachVideoListeners } from "@/hooks/listeners/videoListeners";
 import { plyrOptions } from "@/consts/const";
+import { attachFullscreenOrientation } from "@/hooks/listeners/fullscreenOrientationListener";
 
 interface CardPlayerProps {
   thumbnail: string;
@@ -106,11 +107,10 @@ const CardPlayer = ({
             creditsDurationRef,
             onVideoEnd,
           });
-        }, 1000); // Reduzi para 1s, 10s pode ser muito se o ep for curto ou usuário pular
+        }, 3000);
       }
 
-      // --- CLEANUP GERAL ---
-      // Quando o componente desmontar (troca de ep), limpa tudo na ordem inversa
+      const cleanupFullscreenOrientation = attachFullscreenOrientation(player);
       return () => {
         if (creditsTimeoutId) clearTimeout(creditsTimeoutId);
 
@@ -118,7 +118,8 @@ const CardPlayer = ({
         cleanupIntro?.();
         cleanupKeyboard?.();
         cleanupVideoListeners?.();
-        cleanupHls?.(); // HLS por último para garantir que listeners não tentem acessar vídeo morto
+        cleanupHls?.();
+        cleanupFullscreenOrientation?.();
       };
     });
   }, [videoId]);
