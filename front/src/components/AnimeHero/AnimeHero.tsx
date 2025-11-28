@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
@@ -18,9 +18,8 @@ import {
   Synopsis,
   FooterContainer,
   FavoriteButton,
-
+  SeeMoreButton,
 } from "./AnimeHero.styles";
-
 
 export interface AnimeHeroProps {
   title: string;
@@ -30,7 +29,7 @@ export interface AnimeHeroProps {
   year?: string | number;
   genres?: string[];
   synopsis?: string;
-  handleFavoritar: ()=>void;
+  handleFavoritar: () => void;
   isFavorite: boolean;
 }
 
@@ -45,6 +44,12 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
   handleFavoritar,
   isFavorite,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleToggleSynopsis = () => {
+    setIsExpanded((prev) => !prev);
+  };
+
   return (
     <AnimeHeroContainer>
       <PosterContainer>
@@ -56,7 +61,7 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
 
         <InfoRow>
           {/* Score */}
-          {score && (
+          {typeof score === "number" && (
             <>
               <ScoreBox>
                 <ScoreValue>{score.toFixed(1)}</ScoreValue>
@@ -93,19 +98,19 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
         </InfoRow>
 
         {/* Sinopse */}
-        {synopsis && <Synopsis>{synopsis}</Synopsis>}
+        {synopsis && (
+          <>
+            <Synopsis isExpanded={isExpanded}>{synopsis}</Synopsis>
+            <SeeMoreButton onClick={handleToggleSynopsis}>
+              {isExpanded ? "Ver menos" : "Ver mais"}
+            </SeeMoreButton>
+          </>
+        )}
 
         {/* Footer com favoritos */}
-
         <FooterContainer>
           <FavoriteButton onClick={handleFavoritar} isFavorite={isFavorite}>
-            {isFavorite ? (
-              // Se for favorito: Ícone Cheio (a cor vermelha vem do styled component)
-              <FavoriteIcon />
-            ) : (
-              // Se NÃO for favorito: Ícone de Borda (a cor branca vem do styled component)
-              <FavoriteBorderIcon />
-            )}
+            {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
           </FavoriteButton>
         </FooterContainer>
       </ContentContainer>

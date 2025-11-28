@@ -1,70 +1,86 @@
-import { IconButton } from "@mui/material";
+// Header.tsx
+import { Box, IconButton } from "@mui/material";
 import { Home, Logout, Login } from "@mui/icons-material";
 import * as S from "./Header.styles";
 import SearchComponent from "./Search/SearchField";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useLoginGoogle } from "@/hooks/useLoginGoogle";
+
+interface ButtonLoginProps {
+  mobile?: boolean;
+  currentUser: any; // tipa com o tipo certo se você tiver
+  handleLogout: () => void;
+  handleLogin: () => void;
+}
+
+const ButtonLogin = ({
+  mobile,
+  currentUser,
+  handleLogout,
+  handleLogin,
+}: ButtonLoginProps) => {
+  const xs = mobile ? "block" : "none";
+  const md = mobile ? "none" : "block";
+
+  return (
+    <Box sx={{ display: { xs, md }, marginLeft: "auto" }}>
+      {currentUser ? (
+        <S.LogoutButton
+          variant="outlined"
+          startIcon={<Logout />}
+          onClick={handleLogout}
+        >
+          Sair
+        </S.LogoutButton>
+      ) : (
+        <S.LoginButton startIcon={<Login />} onClick={handleLogin}>
+          Login
+        </S.LoginButton>
+      )}
+    </Box>
+  );
+};
 
 const Header = () => {
-  const { currentUser, loginWithGoogle, logout } = useAuth();
+  const { currentUser, handleLogout, handleLogin } = useLoginGoogle();
 
-  const handleLogin = async () => {
-    try {
-      await loginWithGoogle();
-    } catch (err) {
-      console.error("Erro ao logar:", err);
-      alert("Falha no login");
-    }
-  };
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.error("Erro ao logout:", err);
-      alert("Falha no logout");
-    }
-  };
   return (
-    <S.StyledAppBar>
-      <S.StyledToolbar>
-        {/* Lado Esquerdo: Logo + Home */}
-        <S.LeftSection>
-          <S.LogoText>
-            <span>an</span>rol
-          </S.LogoText>
+    <S.StyledToolbar>
+      <S.LeftSection>
+        <S.LogoText to="/">
+          <span>an</span>rol
+        </S.LogoText>
 
-          <IconButton
-            size="small"
-            sx={{ color: "#fff" }}
-            aria-label="home"
-            component={Link}
-            to="/"
-          >
-            <Home />
-          </IconButton>
-        </S.LeftSection>
+        <IconButton
+          size="small"
+          sx={{
+            color: "#fff",
+            display: { xs: "none", sm: "inline-flex" },
+          }}
+          aria-label="home"
+          component={Link}
+          to="/"
+        >
+          <Home />
+        </IconButton>
 
-        {/* Lado Direito: Pesquisa + Login/Logout */}
-        <S.RightSection>
-          {/* Componente de Busca com Lógica Integrada */}
-          <SearchComponent />
+        <ButtonLogin
+          mobile
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          handleLogin={handleLogin}
+        />
+      </S.LeftSection>
 
-          {currentUser ? (
-            <S.LogoutButton
-              variant="outlined"
-              startIcon={<Logout />}
-              onClick={handleLogout}
-            >
-              Sair
-            </S.LogoutButton>
-          ) : (
-            <S.LoginButton startIcon={<Login />} onClick={handleLogin}>
-              Login
-            </S.LoginButton>
-          )}
-        </S.RightSection>
-      </S.StyledToolbar>
-    </S.StyledAppBar>
+      <S.RightSection>
+        <SearchComponent />
+        <ButtonLogin
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+          handleLogin={handleLogin}
+        />
+      </S.RightSection>
+    </S.StyledToolbar>
   );
 };
 

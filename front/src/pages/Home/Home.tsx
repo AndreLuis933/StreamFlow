@@ -54,7 +54,10 @@ export default function Home() {
           <SectionTitle>Novos Episódios</SectionTitle>
           <Grid container spacing={2}>
             {episodes.map((e) => (
-              <Grid key={e.id_series_episodios} size={2}>
+              <Grid
+                key={e.id_series_episodios}
+                size={{ xs: 6, sm: 4, md: 3, lg: 2 }}
+              >
                 <EpisodeCard episode={e} />
               </Grid>
             ))}
@@ -62,7 +65,7 @@ export default function Home() {
             {/* Skeleton Tab 1 */}
             {isLoading &&
               Array.from({ length: 6 }).map((_, i) => (
-                <Grid key={i} size={2}>
+                <Grid key={i} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                   <Skeleton variant="rounded" height={180} />
                 </Grid>
               ))}
@@ -82,7 +85,7 @@ export default function Home() {
           <SectionTitle>Biblioteca</SectionTitle>
           <Grid container spacing={2}>
             {favorites.map((anime) => (
-              <Grid key={anime.id} size={2}>
+              <Grid key={anime.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                 <S.AnimeCard>
                   <S.AnimeActionArea onClick={() => navigate(`/a/${anime.id}`)}>
                     <S.AnimeCover
@@ -91,7 +94,7 @@ export default function Home() {
                       alt={anime.title}
                     />
                     <CardContent sx={{ p: 1.5, width: "100%" }}>
-                      <S.AnimeTitle variant="subtitle2" >
+                      <S.AnimeTitle variant="subtitle2">
                         {anime.title}
                       </S.AnimeTitle>
                     </CardContent>
@@ -103,7 +106,7 @@ export default function Home() {
             {/* Skeleton Tab 2 */}
             {loadingFavorites &&
               Array.from({ length: 6 }).map((_, i) => (
-                <Grid key={i} size={2}>
+                <Grid key={i} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                   <Skeleton variant="rounded" height={220} />
                   <Skeleton variant="text" sx={{ mt: 1 }} />
                 </Grid>

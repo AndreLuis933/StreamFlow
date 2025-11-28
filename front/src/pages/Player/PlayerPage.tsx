@@ -3,7 +3,7 @@ import CardPlayer from "@/components/CardPlayer/CardPlayer";
 import { useNavigate, useParams } from "react-router-dom";
 import { EpNavButton } from "@/components/EpNavButtons";
 import { getEpisodeImageUrlBySlug } from "@/utils/images";
-import { Page, TitleLink } from "./Player.styles";
+import { PlayerContainer, TitleLink } from "./Player.styles";
 import { usePlayerData } from "./Player.hooks";
 import { formatarTempoDecorrido } from "@/utils/timePass";
 const VITE_API_BASE_URL_PROXY = import.meta.env.VITE_API_BASE_URL_PROXY;
@@ -15,9 +15,9 @@ export default function PlayerPage() {
 
   if (!IdEp) {
     return (
-      <Page>
+      <PlayerContainer>
         <Alert severity="warning">Parâmetros inválidos na URL.</Alert>
-      </Page>
+      </PlayerContainer>
     );
   }
   const { data, isLoading, error } = usePlayerData(IdEp);
@@ -34,7 +34,7 @@ export default function PlayerPage() {
   )}&ep=${encodeURIComponent(ep)}`;
 
   return (
-    <Page>
+    <PlayerContainer>
       {isLoading ? (
         <Skeleton variant="rounded" height={540} />
       ) : error ? (
@@ -72,7 +72,11 @@ export default function PlayerPage() {
             {data.sinopse_episodio}
           </Typography>
 
-          <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{ width: "100%" }}
+          >
             {data.prevEp?.generate_id &&
               (() => {
                 const prevEp = data.prevEp.generate_id;
@@ -109,6 +113,6 @@ export default function PlayerPage() {
           </Stack>
         </Box>
       )}
-    </Page>
+    </PlayerContainer>
   );
 }

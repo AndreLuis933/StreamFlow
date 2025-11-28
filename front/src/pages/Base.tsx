@@ -5,11 +5,10 @@ import { styled } from "@mui/material/styles";
 import Header from "@/components/Header/Header";
 
 export const Page = styled(Box)(() => ({
-  padding: 24,
+  padding: "1.5rem",
   background: "#1b1b1a",
-  minHeight: "100vh",
   borderRadius: 10,
-  flexGrow: 1,
+  height: "100%",
 }));
 
 const Base = () => {
@@ -21,7 +20,7 @@ const Base = () => {
           display: "flex",
           flexDirection: "column",
           gap: 1,
-          flexWrap: "wrap",
+          flex: 1,
         }}
       >
         <Header />

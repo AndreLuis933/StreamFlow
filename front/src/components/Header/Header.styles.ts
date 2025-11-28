@@ -1,5 +1,6 @@
 import { styled, alpha } from "@mui/material/styles";
 import { AppBar, Toolbar, InputBase, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 // --- Cores e Variáveis ---
 const colors = {
@@ -12,43 +13,54 @@ const colors = {
   dropdownBorder: "#2a2a2a",
 };
 
-// --- Header Base ---
-export const StyledAppBar = styled(AppBar)({
-  backgroundColor: colors.background,
-  boxShadow: "none",
-  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-  position: "sticky",
-});
-
-export const StyledToolbar = styled(Toolbar)({
+export const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: "flex",
   justifyContent: "space-between",
+  alignItems: "center",
   minHeight: "64px",
-  padding: "0 24px",
-});
+  padding: "0 16px",
+  gap: "8px",
+  [theme.breakpoints.down("sm")]: {
+    flexDirection: "column",
+    alignItems: "stretch",
+    padding: "8px 12px",
+  },
+}));
 
-export const LeftSection = styled("div")({
+export const LeftSection = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   gap: "20px",
-});
+  [theme.breakpoints.down("sm")]: {
+    width: "100%",
+    justifyContent: "space-between",
+  },
+}));
 
-export const LogoText = styled("span")({
+export const RightSection = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+  [theme.breakpoints.down("sm")]: {
+    width: "100%",
+    marginTop: "8px",
+    justifyContent: "center",
+  },
+}));
+
+export const LogoText = styled(Link)({
   fontSize: "24px",
   fontWeight: 800,
   letterSpacing: "-0.5px",
   color: colors.text,
-//  cursor: "pointer",
+  textDecoration: "none",
+  cursor: "pointer",
   "& span": {
     color: colors.primary,
   },
 });
 
-export const RightSection = styled("div")({
-  display: "flex",
-  alignItems: "center",
-  gap: "16px",
-});
+
 
 // --- Botões ---
 export const LoginButton = styled(Button)({
@@ -72,23 +84,27 @@ export const LogoutButton = styled(Button)({
   },
 });
 
-// --- Área de Pesquisa (Container Principal) ---
 export const SearchContainer = styled("div")(({ theme }) => ({
-  position: "relative", // Importante para o dropdown absoluto
+  position: "relative",
   borderRadius: "4px",
   backgroundColor: colors.searchBg,
   "&:hover": {
     backgroundColor: alpha(colors.searchBg, 0.8),
   },
-  marginRight: theme.spacing(2),
+  marginRight: theme.spacing(1),
   marginLeft: 0,
   width: "100%",
   display: "flex",
   alignItems: "center",
+
+  [theme.breakpoints.down("sm")]: {
+    marginRight: 0,
+  },
+
   [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(3),
     width: "auto",
-    minWidth: "300px", // Largura mínima para ficar bonito
+    minWidth: "300px",
   },
 }));
 

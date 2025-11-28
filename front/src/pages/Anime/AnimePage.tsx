@@ -78,12 +78,11 @@ export default function AnimePage() {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             alignItems: "center",
             mb: 2,
           }}
         >
-          <SectionTitle>Episódios</SectionTitle>
 
           <FilterContainer>
             <FilterLabel>Filtrar por:</FilterLabel>
@@ -106,14 +105,17 @@ export default function AnimePage() {
 
         <Grid container spacing={2}>
           {episodes.map((e) => (
-            <Grid key={e.id_series_episodios} size={2}>
+            <Grid
+              key={e.id_series_episodios}
+              size={{ xs: 6, sm: 4, md: 3, lg: 2 }}
+            >
               <EpisodeCard episode={e} />
             </Grid>
           ))}
           {loadingEpisodes &&
             episodes.length > 0 &&
             Array.from({ length: 12 }).map((_, i) => (
-              <Grid key={i} size={2}>
+              <Grid key={i} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                 <Skeleton variant="rounded" height={180} />
               </Grid>
             ))}
