@@ -53,7 +53,6 @@ hls.on(Hls.Events.ERROR, (_, data) => {
     const currentTime = video.currentTime;
     const bufferGap = badFrag.start - currentTime;
 
-    // CENÁRIO 1: O erro está longe (Pre-load)
     if (bufferGap > 2.0) {
       console.warn(
         `Segmento futuro ${badFrag.sn} falhou. O download vai pausar.`
@@ -61,7 +60,6 @@ hls.on(Hls.Events.ERROR, (_, data) => {
       return;
     }
 
-    // CENÁRIO 2: O usuário chegou no buraco
     const jumpToTime = badFrag.start + badFrag.duration + 0.1;
 
     console.warn(

@@ -14,8 +14,6 @@ const FIXED_HEADERS = {
 
 let _buildIdCache: string | null = null;
 
-// --- Funções Auxiliares ---
-
 function buildM3u8Url(nome: string, ep: string | undefined, isMovie: boolean): string {
 	if (isMovie || !ep) {
 		return `https://cdn-zenitsu-2-gamabunta.b-cdn.net/cf/hls/movies/${nome}/movie.mp4/media-1/stream.m3u8`;
@@ -38,34 +36,19 @@ async function getBuildId(forceRefresh: boolean = false): Promise<string> {
 	throw new Error('Não foi possível encontrar o buildId');
 }
 
-/**
- * Tenta buscar do Cache da Cloudflare primeiro.
- * Se não existir, executa a função 'fetcher', salva no cache e retorna.
- */
 async function tryCache(c: any, ttlSeconds: number, fetcher: () => Promise<Response>): Promise<Response> {
 	const cache = caches.default;
-	const url = new URL(c.req.url); // Usa a URL atual como chave do cache
+	const url = new URL(c.req.url);
 
-	// 1. Tenta pegar do cache
 	const cachedResponse = await cache.match(url.toString());
-	if (cachedResponse) {
-		console.log(`HIT Cache: ${url.pathname}`);
-		return cachedResponse;
-	}
+	if (cachedResponse) return cachedResponse;
 
-	console.log(`MISS Cache: ${url.pathname}`);
-
-	// 2. Se não tem, executa a lógica original
 	const response = await fetcher();
 
-	// 3. Se a resposta for sucesso (200), salva no cache
 	if (response.status === 200) {
-		// Precisamos clonar a resposta para salvar no cache e retornar ao usuário
-		// Adicionamos o header Cache-Control para o Cloudflare saber quanto tempo guardar
 		const responseToCache = response.clone();
 		responseToCache.headers.set('Cache-Control', `public, max-age=${ttlSeconds}`);
 
-		// ctx.waitUntil garante que o salvamento ocorra em segundo plano sem travar a resposta
 		c.executionCtx.waitUntil(cache.put(url.toString(), responseToCache));
 	}
 
@@ -113,7 +96,6 @@ app.get('/m3u8', async (c) => {
 	});
 });
 
-// Rota: /seg (Cache de 1 dia - 86400s)
 app.get('/seg', async (c) => {
 	return tryCache(c, 86400, async () => {
 		const u = c.req.query('u');
@@ -122,9 +104,8 @@ app.get('/seg', async (c) => {
 		const targetUrl = decodeURIComponent(u);
 
 		try {
-			// Adicione um timeout no fetch do backend também, para não travar a thread
 			const controller = new AbortController();
-			const id = setTimeout(() => controller.abort(), 15000); // 15s timeout no backend
+			const id = setTimeout(() => controller.abort(), 15000);
 
 			const response = await fetch(targetUrl, {
 				headers: FIXED_HEADERS,
@@ -132,8 +113,6 @@ app.get('/seg', async (c) => {
 			});
 			clearTimeout(id);
 
-			// Se o servidor de origem disser 404, repasse 404.
-			// Isso faz o HLS falhar rápido nessa tentativa e ir pra próxima (ou pular se acabar as tentativas)
 			if (response.status === 404) {
 				return c.text('Segment not found', 404);
 			}
@@ -151,12 +130,10 @@ app.get('/seg', async (c) => {
 				},
 			});
 		} catch (e: any) {
-			// Se der timeout no backend, retorna 504. O HLS entende isso como erro de rede e tenta de novo.
 			return c.text(`Proxy Timeout: ${e.message}`, 504);
 		}
 	});
 });
-
 
 app.get('/data', async (c) => {
 	return tryCache(c, 60, async () => {
@@ -170,7 +147,6 @@ app.get('/data', async (c) => {
 		return c.json(data, 200, { 'Cache-Control': 'public, max-age=60' });
 	});
 });
-
 
 app.get('/animes', async (c) => {
 	return tryCache(c, 300, async () => {

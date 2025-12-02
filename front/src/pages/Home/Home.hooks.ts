@@ -14,14 +14,11 @@ export function useHome() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Controle da Tab ativa (0 = Episódios, 1 = Animes)
   const [tabValue, setTabValue] = useState(0);
 
-  // Estado para armazenar a lista completa de objetos
   const [favorites, setFavorites] = useState<FavoriteAnime[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
 
-  // Extrai apenas os slugs para passar para o hook de episódios
   const slugsList = useMemo(() => favorites.map((f) => f.id), [favorites]);
 
   const { episodes, loading: loadingEpisodes } = useEpisodesFetcher({

@@ -73,7 +73,6 @@ export default function AnimePage() {
 
       {error && <Alert severity="error">Falha ao carregar episódios.</Alert>}
 
-      {/* Seção de Episódios */}
       <EpisodesSection>
         <Box
           sx={{

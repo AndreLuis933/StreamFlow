@@ -6,7 +6,7 @@ from config.config import SR_TARGET
 
 
 def converter_buffer_to_numpy(buffer_completo):
-    """Retorna um np.array (float32) normalizado e o sample rate."""
+    """Retorna um np.array (float32) normalizado."""
     if not buffer_completo:
         return None
 

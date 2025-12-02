@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-// Container da seção de episódios
+
 export const EpisodesSection = styled(Box)({
   marginTop: 32,
 });

@@ -5,5 +5,4 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Interceptors (auth, logging, retry) podem entrar aqui
 export default api;

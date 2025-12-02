@@ -55,8 +55,7 @@ export function useAnimeEpisodes(slug: string, order: string) {
       setLoadingEpisodes(false);
     }
   }, [slug, page, hasNextPage, loadingEpisodes, order]);
-
-  //primeira busca
+  
   useEffect(() => {
     let active = true;
     async function run() {
@@ -82,7 +81,6 @@ export function useAnimeEpisodes(slug: string, order: string) {
     };
   }, [slug, order]);
 
-  // carregar mais com o scroll
   useEffect(() => {
     const handleScroll = () => {
       if (

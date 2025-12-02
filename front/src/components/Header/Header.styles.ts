@@ -2,7 +2,6 @@ import { styled, alpha } from "@mui/material/styles";
 import { AppBar, Toolbar, InputBase, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 
-// --- Cores e Variáveis ---
 const colors = {
   background: "#0a0a0a",
   primary: "#ff6b00",
@@ -61,8 +60,6 @@ export const LogoText = styled(Link)({
 });
 
 
-
-// --- Botões ---
 export const LoginButton = styled(Button)({
   color: colors.text,
   textTransform: "none",
@@ -150,7 +147,7 @@ export const FloatCard = styled("div", {
   zIndex: 1000,
   display: $show ? "block" : "none",
 
-  // Scrollbar customizada (opcional)
+
   "&::-webkit-scrollbar": {
     width: "6px",
   },
@@ -175,7 +172,7 @@ export const ResultItem = styled("a")({
 });
 
 export const ResultCover = styled("img")({
-  width: "60px", // Ajustei um pouco para caber melhor no dropdown
+  width: "60px",
   height: "90px",
   borderRadius: "4px",
   objectFit: "cover",

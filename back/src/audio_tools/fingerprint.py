@@ -1,6 +1,6 @@
 import numpy as np
-from numpy.lib.stride_tricks import sliding_window_view
 from config.loggin import measure_time
+from numpy.lib.stride_tricks import sliding_window_view
 
 
 def fast_max_filter_2d(img: np.ndarray, size: tuple) -> np.ndarray:
@@ -36,7 +36,6 @@ def fingerprint_audio_array(
     peak_neighborhood_size: tuple = (20, 20),
     max_dt_s: float = 2.0,
 ) -> list[dict]:
-    # 1. STFT (Mantive a versão NumPy pois a diferença foi pequena: 0.05s vs 0.08s)
     with measure_time("STFT Calculation (NumPy)"):
         window = np.hanning(n_fft)
         pad_width = n_fft // 2

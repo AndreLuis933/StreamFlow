@@ -20,11 +20,10 @@ export function useEpisodesFetcher({ slugs }: UseEpisodesFetcherProps) {
     try {
       const allEpisodes: Episode[] = [];
       for (const slug of slugs) {
-        const res = await fetchAnimeBySlug(slug, 1, "desc"); // Busca todos os episódios da primeira página
+        const res = await fetchAnimeBySlug(slug, 1, "desc");
         allEpisodes.push(...res.data);
       }
 
-      // Ordena os episódios pela data_registro em ordem decrescente
       const sortedEpisodes = allEpisodes.sort(
         (a, b) =>
           new Date(b.data_registro).getTime() -

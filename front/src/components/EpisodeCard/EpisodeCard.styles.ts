@@ -11,24 +11,16 @@ export const Card = styled(Link)`
   overflow: hidden;
   transition: transform 0.2s;
   width: 100%;
-  /* Remove altura fixa, deixa o card crescer conforme o conteúdo */
-  /* height: 180px; */
   &:hover {
     transform: scale(1.02);
   }
 `;
 
-/**
- * Mantém 16:9 SEM cortar:
- * - Usa aspect-ratio: 16 / 9
- * - Usa object-fit: contain pra mostrar a imagem inteira
- * - background preto pra não ficar estranho se sobrar espaço
- */
 export const Image = styled.img`
   width: 100%;
   aspect-ratio: 16 / 9;
-  object-fit: contain; /* mostra a imagem inteira, sem corte */
-  background: #000; /* bordas laterais ou em cima/baixo se sobrar espaço */
+  object-fit: contain;
+  background: #000;
   flex-shrink: 0;
 `;
 

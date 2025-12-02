@@ -50,7 +50,6 @@ export const PosterContainer = styled(Box)(({ theme }) => ({
     objectFit: "cover",
   },
 
-  // MOBILE: imagem fica full width (quase) e centralizada
   [theme.breakpoints.down("md")]: {
     width: "100%",
     maxWidth: 260,

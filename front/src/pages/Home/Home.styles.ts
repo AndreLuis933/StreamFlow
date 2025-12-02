@@ -23,7 +23,7 @@ export const AnimeCover = styled(CardMedia)({
   aspectRatio: "2/3",
   objectFit: "cover",
   objectPosition: "center",
-}) as typeof CardMedia; // Type assertion para manter props de img
+}) as typeof CardMedia;
 
 export const AnimeTitle = styled(Typography)({
   fontWeight: "bold",

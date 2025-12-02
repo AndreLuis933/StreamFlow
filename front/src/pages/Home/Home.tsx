@@ -11,7 +11,6 @@ import {
 import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
 import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
 
-// Imports dos arquivos criados
 import { useHome } from "./Home.hooks";
 import * as S from "./Home.styles";
 
@@ -103,7 +102,6 @@ export default function Home() {
               </Grid>
             ))}
 
-            {/* Skeleton Tab 2 */}
             {loadingFavorites &&
               Array.from({ length: 6 }).map((_, i) => (
                 <Grid key={i} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>

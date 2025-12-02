@@ -5,6 +5,7 @@ import { styled } from "@mui/material/styles";
 import Header from "@/components/Header/Header";
 
 export const Page = styled(Box)(() => ({
+  position: "relative",
   padding: "1.5rem",
   background: "#1b1b1a",
   borderRadius: 10,

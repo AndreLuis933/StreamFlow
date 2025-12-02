@@ -2,6 +2,7 @@ import { styled as muiStyled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import Button from "@mui/material/Button";
 
 export const PlayerContainer = muiStyled(Box)(({ theme }) => ({
   width: "100%",
@@ -23,3 +24,39 @@ export const TitleLink = styled(Link)`
     color: #ff5722;
   }
 `;
+
+export const BackButton = muiStyled(Button)(({ theme }) => ({
+  position: "absolute",
+  top: 8,
+  left: 8,
+  zIndex: 10,
+
+  [theme.breakpoints.up("md")]: {
+    top: 24,
+    left: 24,
+  },
+
+
+  width: 160,
+  height: 48,
+  minWidth: 160,
+  padding: 0,
+
+  backgroundColor: "#1b7f3b",
+  color: "#ffffff",
+  borderRadius: "12px",
+  border: "1px solid rgba(255,255,255,0.7)",
+  textTransform: "none",
+  fontWeight: 600,
+  justifyContent: "center",
+  boxShadow: "none",
+
+  "& .MuiButton-startIcon": {
+    marginRight: theme.spacing(1),
+  },
+
+  "&:hover": {
+    backgroundColor: "#176b32",
+    boxShadow: "0 0 0 1px rgba(255,255,255,0.5)",
+  },
+}));

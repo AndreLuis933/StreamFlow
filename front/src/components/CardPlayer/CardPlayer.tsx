@@ -64,7 +64,7 @@ const CardPlayer = ({
 
   useEffect(() => {
     return waitForPlayer(plyrRef, (player, video) => {
-      // 1. Configurar HLS (Prioridade máxima para carregar o vídeo)
+      // 1. Configurar HLS
       const cleanupHls = setupHlsPlayer({ src, video });
 
       // 2. Listeners de Vídeo (Progresso, Save/Restore)
@@ -91,7 +91,7 @@ const CardPlayer = ({
         });
       }
 
-      // 5. Botão de Créditos (com delay para não pesar na inicialização)
+      // 5. Botão de Créditos
       let cleanupCredits: (() => void) | undefined;
       let creditsTimeoutId: NodeJS.Timeout | undefined;
 
@@ -109,7 +109,7 @@ const CardPlayer = ({
           });
         }, 3000);
       }
-
+      // 5. Orientaçao em moblie
       const cleanupFullscreenOrientation = attachFullscreenOrientation(player);
       return () => {
         if (creditsTimeoutId) clearTimeout(creditsTimeoutId);

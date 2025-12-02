@@ -12,7 +12,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 
-// Interface for the anime object
 interface FavoriteAnime {
   id: string;
   title: string;
@@ -106,7 +105,6 @@ export const isFavorite = async (
 
 type SegmentDuration = { start_sec: number; end_sec: number };
 
-// Função que dispara a Lambda. Ela não precisa retornar a duração.
 type FireJobFn = (nome: string, ep: string) => Promise<void>;
 
 export const fetchSegmentDurationFirebase = async (
@@ -117,7 +115,6 @@ export const fetchSegmentDurationFirebase = async (
 ): Promise<SegmentDuration | null> => {
   const docRef = doc(db, "animes", nome, tipo, ep);
 
-  // 1) TENTA PEGAR O DOCUMENTO PRIMEIRO (resposta rápida se já existir)
   const existingSnap = await getDoc(docRef);
 
   if (existingSnap.exists()) {
@@ -135,7 +132,6 @@ export const fetchSegmentDurationFirebase = async (
 
   await fireJob(nome, ep);
 
-  // 3) Fica escutando até o documento existir (ou timeout)
   return new Promise<SegmentDuration | null>((resolve, reject) => {
     const timeoutId = setTimeout(() => {
       unsubscribe();
@@ -146,7 +142,6 @@ export const fetchSegmentDurationFirebase = async (
       docRef,
       (docSnap) => {
         if (!docSnap.exists()) {
-          // Ainda não criou o doc; espera mais
           return;
         }
 

@@ -32,7 +32,7 @@ async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
 
     segmentos_data = {}
 
-    semaphore = asyncio.Semaphore(20)
+    semaphore = asyncio.Semaphore(10)
 
     # Função interna para usar o semáforo global
     async def download_with_semaphore(client, i, seg):
@@ -72,7 +72,7 @@ async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
     async with httpx.AsyncClient(
         follow_redirects=True,
         timeout=httpx.Timeout(20.0, read=10.0, connect=2.0),
-        limits=httpx.Limits(max_keepalive_connections=20, max_connections=50),
+        limits=httpx.Limits(max_keepalive_connections=20, max_connections=10),
         transport=transport,
     ) as client:
         tasks = [download_with_semaphore(client, i, seg) for i, seg in segments_to_download]

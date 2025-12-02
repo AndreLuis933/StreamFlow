@@ -4,16 +4,15 @@ import styled from "styled-components";
 import { ButtonBase, Box, Typography, Avatar } from "@mui/material";
 
 type EpButtonProps = {
-  label: string; // "Anterior" | "Próximo"
-  epNumber: number | string; // 1146, 1148...
-  thumbUrl: string; // URL da imagem/thumbnail
-  $align?: "left" | "right"; // posicionamento do conteúdo
+  label: string;
+  epNumber: number | string;
+  thumbUrl: string;
+  $align?: "left" | "right";
   onClick?: () => void;
 };
 
 const CardButton = styled(ButtonBase)`
-  flex: 1; /* adicione isso */
-  /* width: 100%; */ /* remova ou comente isso */
+  flex: 1;
   height: 84px;
   border-radius: 12px;
   overflow: hidden;
@@ -38,7 +37,7 @@ const BgArt = styled.div<{ $image: string; $align: "left" | "right" }>`
   background-size: cover;
   background-position: ${({ $align }) =>
     $align === "left" ? "left center" : "right center"};
-  opacity: 0.18; /* bem sutil como no print */
+  opacity: 0.18;
   filter: saturate(0.9) brightness(0.9);
   pointer-events: none;
 `;
@@ -75,7 +74,7 @@ export const EpNavButton: React.FC<EpButtonProps> = ({
   $align = "left",
   onClick,
 }) => (
-  <CardButton onClick={onClick} focusRipple >
+  <CardButton onClick={onClick} focusRipple>
     <BgArt $image={thumbUrl} $align={$align} />
     <Fade />
     <Content $align={$align}>

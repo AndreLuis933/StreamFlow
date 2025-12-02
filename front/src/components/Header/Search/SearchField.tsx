@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { Search as SearchIcon } from "@mui/icons-material";
 import * as S from "../Header.styles";
 
-// Imports do seu projeto (ajuste os caminhos se necessário)
 import { useDebounce } from "@/hooks/useDebounce";
 import { TYPE_MAP } from "@/consts/const";
 import type { ApiDataResponse } from "@/types/api";
@@ -14,7 +13,6 @@ const SearchComponent = () => {
   const [results, setResults] = useState<ApiDataResponse["data"]>([]);
   const debounced = useDebounce(anime, 400);
 
-  // Ref para fechar o dropdown ao clicar fora (opcional, mas recomendado)
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,7 +35,6 @@ const SearchComponent = () => {
     fetchData();
   }, [debounced]);
 
-  // Lógica para fechar ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -52,7 +49,6 @@ const SearchComponent = () => {
   }, []);
 
   const getCoverUrl = (slug: string, type: string, size = "130x209") => {
-    // Fallback caso TYPE_MAP[type] seja undefined
     const tipo = TYPE_MAP[type] || "animes";
     return `https://static.api-vidios.net/images/${tipo}/capas/${size}/${slug}.jpg`;
   };
