@@ -6,7 +6,7 @@ Este projeto é uma **Single Page Application (SPA)** que oferece uma experiênc
 
 A aplicação atua como um **proxy inteligente** para o site de vídeos original, otimizando o streaming e adicionando recursos avançados sem modificar a fonte do conteúdo.
 
-**[ 🚀 Veja a demo online aqui! ](https://copy-api-vidios.vercel.app/)**
+**[ 🚀 Veja a demo online aqui! ](https://stream-flow-dev.vercel.app/)**
 
 ## 🚀 Tecnologias Utilizadas
 
