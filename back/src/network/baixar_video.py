@@ -1,58 +1,60 @@
 import asyncio
-from urllib.error import HTTPError, URLError
 
-import httpx
+import boto3
 import m3u8
-from httpx_retries import Retry, RetryTransport
+
+s3_client = boto3.client("s3")
 
 
-async def baixar_segmento(client, i, seg_url, headers):
-    response = await client.get(seg_url, headers=headers)
-    data = response.content
-    return (i, data)
+async def baixar_segmento_s3(bucket: str, seg_key: str, index: int):
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(None, lambda: s3_client.get_object(Bucket=bucket, Key=seg_key))
+    data = response["Body"].read()
+    return (index, data)
 
 
-async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Referer": "https://www.api-vidios.net/",
-    }
+async def baixar_hls_do_s3(bucket: str, m3u8_key: str, type_: str, duration_sec: int = None):
     try:
-        playlist = m3u8.load(url_m3u8, headers=headers)
-    except (HTTPError, URLError):
+        response = s3_client.get_object(Bucket=bucket, Key=m3u8_key)
+        m3u8_content = response["Body"].read().decode("utf-8")
+    except Exception as e:
+        print(f"Erro ao buscar m3u8 do S3: {e}")
         return None, None
 
+    playlist = m3u8.loads(m3u8_content)
+
     if playlist.playlists:
-        variant_url = playlist.playlists[0].absolute_uri
-        playlist = m3u8.load(variant_url, headers=headers)
+        variant_uri = playlist.playlists[0].uri
+        base_path = "/".join(m3u8_key.split("/")[:-1])
+        variant_key = f"{base_path}/{variant_uri}"
+
+        try:
+            response = s3_client.get_object(Bucket=bucket, Key=variant_key)
+            variant_content = response["Body"].read().decode("utf-8")
+            playlist = m3u8.loads(variant_content)
+        except Exception as e:
+            print(f"Erro ao buscar variant playlist: {e}")
+            return None, None
 
     if not playlist.segments:
         print("Nenhum segmento encontrado!")
         return None, None
 
-    segmentos_data = {}
-
-    semaphore = asyncio.Semaphore(10)
-
-    # Função interna para usar o semáforo global
-    async def download_with_semaphore(client, i, seg):
-        async with semaphore:
-            return await baixar_segmento(client, i, seg.absolute_uri, headers)
+    base_path = "/".join(m3u8_key.split("/")[:-1])
 
     segments_to_download = []
     init_duration = 0
 
     if type_ == "intro":
-        # Pegar os primeiros segmentos
         accumulated_duration = 0
         for i, seg in enumerate(playlist.segments):
             accumulated_duration += seg.duration
-            segments_to_download.append((i, seg))
+            seg_key = f"{base_path}/{seg.uri}"
+            segments_to_download.append((i, seg_key))
 
             if duration_sec and accumulated_duration >= duration_sec:
                 break
     else:
-        # Pegar os últimos segmentos
         total_duration = sum(seg.duration for seg in playlist.segments)
         init_duration = total_duration - duration_sec if duration_sec else 0
 
@@ -61,25 +63,22 @@ async def baixar_hls_para_buffer(url_m3u8, type_, duration_sec=None):
         for i in range(len(playlist.segments) - 1, -1, -1):
             seg = playlist.segments[i]
             accumulated_duration += seg.duration
-            segments_to_download.insert(0, (i, seg))
+            seg_key = f"{base_path}/{seg.uri}"
+            segments_to_download.insert(0, (i, seg_key))
 
             if duration_sec and accumulated_duration >= duration_sec:
                 break
 
-    retry = Retry(total=10, backoff_factor=0.5)
-    transport = RetryTransport(retry=retry)
+    semaphore = asyncio.Semaphore(10)
 
-    async with httpx.AsyncClient(
-        follow_redirects=True,
-        timeout=httpx.Timeout(20.0, read=10.0, connect=2.0),
-        limits=httpx.Limits(max_keepalive_connections=20, max_connections=10),
-        transport=transport,
-    ) as client:
-        tasks = [download_with_semaphore(client, i, seg) for i, seg in segments_to_download]
-        results = await asyncio.gather(*tasks)
-        segmentos_data = dict(results)
+    async def download_with_semaphore(index, seg_key):
+        async with semaphore:
+            return await baixar_segmento_s3(bucket, seg_key, index)
 
-    # Concatenar todos os segmentos em memória
+    tasks = [download_with_semaphore(i, seg_key) for i, seg_key in segments_to_download]
+    results = await asyncio.gather(*tasks)
+    segmentos_data = dict(results)
+
     buffer_completo = b"".join(data for i, data in sorted(segmentos_data.items()))
 
     return buffer_completo, init_duration

@@ -1,15 +1,12 @@
 [project]
-name = "api-vidios"
+name = "stream-flow-poc"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "aiohttp>=3.13.2",
     "av>=16.0.1",
     "firebase-admin>=7.1.0",
-    "httpx>=0.28.1",
-    "httpx-retries>=0.4.5",
     "m3u8>=6.0.0",
     "numpy>=2.3.5",
 ]

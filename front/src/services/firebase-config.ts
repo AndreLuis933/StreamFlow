@@ -3,13 +3,12 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDIBYbqA4mgZmHCrcr8EM8OP0Rkp4KPG8c",
-  authDomain: "api-vidios-30d79.firebaseapp.com",
-  projectId: "api-vidios-30d79",
-  storageBucket: "api-vidios-30d79.firebasestorage.app",
-  messagingSenderId: "420259844821",
-  appId: "1:420259844821:web:48a457ba8ff73e6f11085c",
-  measurementId: "G-FHDQJYQMQQ",
+  apiKey: "AIzaSyAwGvskDDCE5Dfl4PFG54G7XqkEAFnGM-c",
+  authDomain: "streamflow-2510c.firebaseapp.com",
+  projectId: "streamflow-2510c",
+  storageBucket: "streamflow-2510c.firebasestorage.app",
+  messagingSenderId: "760670775870",
+  appId: "1:760670775870:web:0984acd93498f0ee087f6f",
 };
 
 const app = initializeApp(firebaseConfig);

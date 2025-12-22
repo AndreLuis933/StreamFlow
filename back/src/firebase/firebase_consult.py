@@ -37,8 +37,8 @@ def buscar_hashes_proximos(anime_nome: str, episodio_alvo: int, type_, janela: i
     return candidatos
 
 
-def consult_seguement(nome, ep, type_):
-    doc_ref = db.collection("animes").document(nome).collection(type_).document(ep)
+def consult_segment(nome, ep, type_):
+    doc_ref = db.collection("animes").document(nome).collection(type_).document(str(ep))
     doc = doc_ref.get()
     if doc.exists:
         return doc.to_dict()

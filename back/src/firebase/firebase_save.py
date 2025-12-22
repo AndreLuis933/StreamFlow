@@ -67,4 +67,4 @@ def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
 def save_to_firebase_result(fingerprint, nome, ep, type_):
     doc_ref = db.collection("animes").document(nome).collection(type_)
 
-    doc_ref.document(ep).set(fingerprint)
+    doc_ref.document(str(ep)).set(fingerprint)

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Indentificador de intro para CopyAnrol
+Description: Indentificador de intro para VidiosPoc
 
 Resources:
   MyApi:
@@ -12,17 +12,19 @@ Resources:
         AllowMethods: "'GET,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization,X-Api-Key'"
         AllowOrigin: "'*'"
-
   MyAppFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
       Handler: main.handler
       Runtime: python3.12
-      MemorySize: 1536
+      MemorySize: 768
       Timeout: 40
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          VIDEOS_BUCKET: aws-videos-poc
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: '2012-10-17'
@@ -31,6 +33,15 @@ Resources:
               Action:
                 - lambda:InvokeFunction
               Resource: "*"
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - arn:aws:s3:::aws-videos-poc
+                - arn:aws:s3:::aws-videos-poc/*
       Events:
         IntroEndpoint:
           Type: Api
@@ -52,22 +63,22 @@ Resources:
   MyApiKey:
     Type: AWS::ApiGateway::ApiKey
     Properties:
-      Name: CopyAnrolApiKey
+      Name: VidiosPocApiKey
       Enabled: true
 
   MyUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
     DependsOn: MyApiProdStage
     Properties:
-      UsagePlanName: CopyAnrolApiKey
+      UsagePlanName: VidiosPocApiKey
       ApiStages:
         - ApiId: !Ref MyApi
           Stage: Prod
       Throttle:
-        RateLimit: 50
-        BurstLimit: 100
+        RateLimit: 20
+        BurstLimit: 40
       Quota:
-        Limit: 200
+        Limit: 50
         Period: DAY
 
   MyUsagePlanKey:

@@ -25,7 +25,7 @@ def find_pattern_in_audio(
     audio_bytes: np.ndarray,
     stored_hash_map: dict,
     anime: str,
-    ep: str,
+    ep: int,
     type_: str,
     start_offset: float,
 ) -> dict[str, float] | None:

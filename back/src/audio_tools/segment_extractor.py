@@ -27,7 +27,7 @@ def extract_and_save_common_segment(
     reference_audio_bytes: np.ndarray,
     query_audio_bytes: np.ndarray,
     anime: str,
-    ep_target: str,
+    ep_target: int,
     type_: str,
     start_offset: float,
     out_audio_path: str | None = None,
