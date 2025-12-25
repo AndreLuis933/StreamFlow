@@ -1,60 +1,26 @@
-import { useState, useEffect, useMemo } from "react";
+import { fetchCatalago, fetchDetalhesAnimeBySlug } from "@/services/anime";
+import type { DetalhesAnimeResponse } from "@/types/api";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useEpisodesFetcher } from "@/hooks/useEpisodesFetcher";
-import { getFavorites } from "@/services/firebase";
-
-export interface FavoriteAnime {
-  slug: string;
-  title: string;
-  id: string;
-}
 
 export function useHome() {
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
-
-  const [tabValue, setTabValue] = useState(0);
-
-  const [favorites, setFavorites] = useState<FavoriteAnime[]>([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(true);
-
-  const slugsList = useMemo(() => favorites.map((f) => f.id), [favorites]);
-
-  const { episodes, loading: loadingEpisodes } = useEpisodesFetcher({
-    slugs: slugsList,
-  });
+  const [episodes, setEpisodes] = useState<DetalhesAnimeResponse[]>([]);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    async function fetchMyFavorites() {
-      if (!currentUser) return;
-      try {
-        setLoadingFavorites(true);
-        const data = await getFavorites(currentUser.uid);
-        setFavorites(data);
-      } catch (error) {
-        console.error("Erro ao buscar favoritos:", error);
-      } finally {
-        setLoadingFavorites(false);
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
+    async function fetch() {
+      const catalago = await fetchCatalago();
+      for (const serie of catalago.series) {
+        const data = await fetchDetalhesAnimeBySlug(serie);
+        setEpisodes((prev) => [...prev, data]);
       }
     }
-    fetchMyFavorites();
-  }, [currentUser]);
+    fetch();
+  }, []);
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
-  const isLoading = loadingFavorites || (tabValue === 0 && loadingEpisodes);
-
-  return {
-    currentUser,
-    tabValue,
-    handleTabChange,
-    favorites,
-    loadingFavorites,
-    episodes,
-    isLoading,
-    navigate,
-  };
+  return { navigate, episodes };
 }

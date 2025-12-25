@@ -1,6 +1,7 @@
 // Header.tsx
 import { Box, IconButton } from "@mui/material";
 import { Home, Logout, Login } from "@mui/icons-material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import * as S from "./Header.styles";
 import SearchComponent from "./Search/SearchField";
 import { Link } from "react-router-dom";
@@ -48,7 +49,7 @@ const Header = () => {
     <S.StyledToolbar>
       <S.LeftSection>
         <S.LogoText to="/">
-          <span>an</span>rol
+          <span>Stream</span>Flow
         </S.LogoText>
 
         <IconButton
@@ -62,6 +63,18 @@ const Header = () => {
           to="/"
         >
           <Home />
+        </IconButton>
+        <IconButton
+          size="small"
+          sx={{
+            color: "#fff",
+            display: { xs: "none", sm: "inline-flex" },
+          }}
+          aria-label="favoritos"
+          component={Link}
+          to="/favoritos"
+        >
+          <FavoriteIcon />
         </IconButton>
 
         <ButtonLogin

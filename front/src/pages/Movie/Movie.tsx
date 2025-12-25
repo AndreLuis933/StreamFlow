@@ -10,6 +10,7 @@ type RouteParams = { id: string };
 const Movie = () => {
   const { id } = useParams<RouteParams>();
 
+  const { data, isLoading, error } = useMovieData(id);
   if (!id) {
     return (
       <Page>
@@ -17,7 +18,6 @@ const Movie = () => {
       </Page>
     );
   }
-  const { data, isLoading, error } = useMovieData(id);
   if (!data) {
     return <></>;
   }

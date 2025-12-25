@@ -175,3 +175,10 @@ export const fetchSegmentDurationFirebase = async (
     );
   });
 };
+
+export const fetchCatalagoFirebase = async () => {
+  const docRef = doc(db, "catalago", "metadata");
+
+  const data = await getDoc(docRef);
+  return data.data();
+};

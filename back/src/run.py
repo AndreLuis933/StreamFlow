@@ -18,7 +18,7 @@ S3_BUCKET = os.environ.get("VIDEOS_BUCKET", "aws-videos-poc")
 
 def build_s3_m3u8_key(title: str, ep: int) -> str:
     ep_norm = str(ep).zfill(2)
-    return f"seasons/{title}/videos/ep-{ep_norm}/master.m3u8"
+    return f"series/{title}/videos/ep-{ep_norm}/master.m3u8"
 
 
 async def audio_hash(ep_num, ep_formatado, title, audio_atual, out_audio_path, type_):

@@ -3,28 +3,27 @@ import { useEffect, useState, useCallback } from "react";
 import type { DetalhesAnimeResponse, Episode } from "@/types/api";
 import { fetchAnimeBySlug, fetchDetalhesAnimeBySlug } from "@/services/anime";
 
-export function useAnimeEpisodes(slug: string, order: string) {
+export function useAnimeEpisodes(order: string, slug?: string) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [error, setError] = useState<boolean>(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
-  const [data, setData] = useState<
-    DetalhesAnimeResponse["pageProps"]["data"] | null
-  >(null);
+  const [data, setData] = useState<DetalhesAnimeResponse | null>(null);
 
   useEffect(() => {
     if (!slug) return;
+    const currentSlug = slug;
 
     let active = true;
 
     async function fetchDetails() {
       setLoadingDetails(true);
       try {
-        const result = await fetchDetalhesAnimeBySlug(slug);
+        const result = await fetchDetalhesAnimeBySlug(currentSlug);
         if (!active) return;
-        setData(result.pageProps.data);
+        setData(result);
       } catch (err) {
         console.error(err);
         if (active) setError(true);
@@ -55,7 +54,7 @@ export function useAnimeEpisodes(slug: string, order: string) {
       setLoadingEpisodes(false);
     }
   }, [slug, page, hasNextPage, loadingEpisodes, order]);
-  
+
   useEffect(() => {
     let active = true;
     async function run() {

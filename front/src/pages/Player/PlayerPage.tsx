@@ -14,6 +14,7 @@ export default function PlayerPage() {
   const navigate = useNavigate();
   const { IdEp } = useParams<RouteParams>();
 
+  const { data, isLoading, error } = usePlayerData(IdEp);
   if (!IdEp) {
     return (
       <PlayerContainer>
@@ -21,7 +22,6 @@ export default function PlayerPage() {
       </PlayerContainer>
     );
   }
-  const { data, isLoading, error } = usePlayerData(IdEp);
   if (!data) {
     return <></>;
   }

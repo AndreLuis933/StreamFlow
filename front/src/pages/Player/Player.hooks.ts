@@ -7,7 +7,7 @@ export function usePlayerData(slug?: string) {
     queryFn: async () => {
       if (!slug) throw new Error("Slug é obrigatório");
       const result = await fetchDetalhesEpBySlug(slug);
-      return result.pageProps.data;
+      return result;
     },
     enabled: !!slug,
     staleTime: 1000 * 60 * 5,

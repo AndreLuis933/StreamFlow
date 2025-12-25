@@ -9,13 +9,10 @@ type Props = {
 
 function EpisodeCard({ episode }: Props) {
   return (
-    <Card to={`/watch/${episode.generate_id}`}>
+    <Card to={`/watch/${episode.slug_serie}-${episode.n_episodio}`}>
       <Image
-        src={getEpisodeImageUrlBySlug(
-          episode.anime.slug_serie,
-          episode.n_episodio
-        )}
-        alt={`${episode.anime.slug_serie}-${episode.n_episodio}`}
+        src={getEpisodeImageUrlBySlug(episode.slug_serie, episode.n_episodio)}
+        alt={`${episode.slug_serie}-${episode.n_episodio}`}
         loading="lazy"
       />
       <Info>

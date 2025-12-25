@@ -11,3 +11,4 @@ wheels/
 *.mp4
 secret_firebase.json
 *.aws-sam/
+s3/
