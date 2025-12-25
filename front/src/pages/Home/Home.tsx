@@ -13,7 +13,7 @@ export default function Home() {
         {episodes.map((serie) => (
           <Grid key={serie.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
             <S.AnimeCard>
-              <S.AnimeActionArea onClick={() => navigate(`/a/${serie.title}`)}>
+              <S.AnimeActionArea onClick={() => navigate(`/serie/${serie.title}`)}>
                 <S.AnimeCover
                   component="img"
                   image={getSerieImageUrlBySlug(serie.title)}

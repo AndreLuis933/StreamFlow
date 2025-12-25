@@ -25,29 +25,25 @@ function createS3Client(env: Bindings): S3Client {
 
 function buildS3KeyForM3u8(nome: string, ep: string): string {
 	const epNorm = Number(ep).toString().padStart(2, '0');
-	// seasons/{nome}/videos/ep-{ep}/master.m3u8
+
 	return `series/${nome}/videos/ep-${epNorm}/master.m3u8`;
 }
 
 function buildS3KeyForSegment(nome: string, ep: string, file: string): string {
 	const epNorm = Number(ep).toString().padStart(2, '0');
-	// seasons/{nome}/videos/ep-{ep}/{file}
+
 	return `series/${nome}/videos/ep-${epNorm}/${file}`;
 }
 function buildS3KeyForDetalhesSerie(nome: string): string {
-	// seasons/{nome}/videos/ep-{ep}/{file}
 	return `series/${nome}/metadata.json`;
 }
 function buildS3KeyForDetalhesEpisodio(nome: string, ep: string): string {
-	// seasons/{nome}/videos/ep-{ep}/{file}
 	return `series/${nome}/videos/${ep}/metadata.json`;
 }
 function buildS3KeyForCapa(nome: string): string {
-	// seasons/{nome}/videos/ep-{ep}/{file}
 	return `series/${nome}/capa.jpg`;
 }
 function buildS3KeyForEpisode(nome: string, ep: string): string {
-	// seasons/{nome}/videos/ep-{ep}/{file}
 	return `series/${nome}/videos/ep-${ep}/Cover.jpg`;
 }
 
@@ -87,7 +83,7 @@ async function getObjectFromS3(env: Bindings, key: string): Promise<{ body: Read
 }
 
 app.get('/m3u8', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		const nome = c.req.query('nome');
 		const ep = c.req.query('ep');
@@ -158,7 +154,7 @@ app.get('/m3u8', async (c) => {
 });
 
 app.get('/seg', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		const nome = c.req.query('nome');
 		const ep = c.req.query('ep');
@@ -194,7 +190,7 @@ app.get('/seg', async (c) => {
 });
 
 app.get('/catalago', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		try {
 			const { body, contentType } = await getObjectFromS3(c.env, 'catalago.json');
@@ -216,7 +212,7 @@ app.get('/catalago', async (c) => {
 });
 
 app.get('/detalhes/serie', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -239,7 +235,7 @@ app.get('/detalhes/serie', async (c) => {
 	});
 });
 app.get('/images/capa', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -262,7 +258,7 @@ app.get('/images/capa', async (c) => {
 	});
 });
 app.get('/images/episode', async (c) => {
-	const cache = 1;
+	const cache = 120;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -286,7 +282,7 @@ app.get('/images/episode', async (c) => {
 	});
 });
 app.get('/serie', async (c) => {
-	const cache = 60;
+	const cache = 120;
 
 	return tryCache(c, cache, async () => {
 		try {
@@ -362,46 +358,11 @@ app.get('/serie', async (c) => {
 			if (e.$response) {
 				console.error('Status:', e.$response.statusCode);
 				console.error('Headers:', e.$response.headers);
-				// CUIDADO: body pode ser stream grande; loga só se necessário
 			}
 			return c.text(`Erro interno: ${e.message}`, 500);
 		}
 	});
 });
-export interface DetalhesEpResponse {
-	id_series_episodios: number;
-	id_serie: number;
-	n_episodio: string;
-	titulo_episodio: string;
-	sinopse_episodio: string;
-	generate_id: string;
-	data_registro: string;
-	anime: {
-		titulo: string;
-		slug_serie: string;
-		generate_id: string;
-	};
-	prevEp: {
-		id_series_episodios: number;
-		n_episodio: string;
-		titulo_episodio: string;
-		generate_id: string;
-		anime: {
-			titulo: string;
-			slug_serie: string;
-		};
-	} | null;
-	nextEp: {
-		id_series_episodios?: number;
-		n_episodio?: string;
-		titulo_episodio?: string;
-		generate_id?: string;
-		anime?: {
-			titulo: string;
-			slug_serie: string;
-		};
-	};
-}
 interface SerieInfoFromS3 {
 	id: number;
 	generos: string[];
@@ -411,8 +372,7 @@ interface SerieInfoFromS3 {
 	censura: number;
 	sinopse: string;
 	data_registro: string;
-	episodes: string[]; // ex: ["ep-01", "ep-02", ...]
-	// pode ter mais campos, mas só usei os que você mostrou
+	episodes: string[];
 }
 
 interface EpisodeMetadataFromS3 {
@@ -421,7 +381,6 @@ interface EpisodeMetadataFromS3 {
 	sinopse_episodio: string;
 	data_registro: string;
 	slug_serie: string;
-	// idem, pode ter mais
 }
 async function getEpisodeMetadataFromS3(env: any, slug: string, epId: string): Promise<EpisodeMetadataFromS3> {
 	const metadataKey = `series/${slug}/videos/${epId}/metadata.json`;
@@ -431,7 +390,7 @@ async function getEpisodeMetadataFromS3(env: any, slug: string, epId: string): P
 	return metadata as EpisodeMetadataFromS3;
 }
 app.get('/detalhes/episodio', async (c) => {
-	const cache = 1;
+	const cache = 120;
 
 	return tryCache(c, cache, async () => {
 		try {

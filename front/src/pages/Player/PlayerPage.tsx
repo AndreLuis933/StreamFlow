@@ -36,12 +36,12 @@ export default function PlayerPage() {
 
   return (
     <>
-      <BackButton
+      {/* <BackButton
         onClick={() => navigate(-1)}
         startIcon={<ArrowBackIosNewIcon />}
       >
         Voltar
-      </BackButton>
+      </BackButton> */}
       <PlayerContainer>
         {isLoading ? (
           <Skeleton variant="rounded" height={540} />
@@ -65,7 +65,7 @@ export default function PlayerPage() {
               Postado {formatarTempoDecorrido(new Date(data.data_registro))}
             </Typography>
 
-            <TitleLink to={`/a/${data.anime.generate_id}`}>
+            <TitleLink to={`/serie/${data.anime.generate_id}`}>
               {data.anime.titulo}
             </TitleLink>
 

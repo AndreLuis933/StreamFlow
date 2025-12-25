@@ -18,19 +18,6 @@ export interface Episode {
   slug_serie: string;
 }
 
-export type ApiDataResponse = {
-  code: number;
-  message: string;
-  data: {
-    id: number | string;
-    title: string;
-    type: string;
-    slug: string;
-    generic_path: string;
-    synopsis: string;
-  }[];
-};
-
 export interface DetalhesAnimeResponse {
   id: number;
   generos: string[];
@@ -105,4 +92,8 @@ export interface DetalhesFilmeResponse {
     };
   };
   __N_SSG: boolean;
+}
+
+export interface ResponseCatalago {
+  series: string[];
 }

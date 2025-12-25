@@ -5,12 +5,10 @@ export function getEpisodeImageUrlBySlug(slugSerie: string, ep: number | string)
     }/images/episode?slug=${slugSerie}&ep=${epStr}`;
 }
 
-export function getFilmeImageUrlBySlug(
-  slugSerie: string,
-
-) {
-
-  return `https://static.api-vidios.net/images/filmes/capas/${slugSerie}.jpg`;
+export function getFilmeImageUrlBySlug(slugSerie: string) {
+  return `${
+    import.meta.env.VITE_API_BASE_URL_PROXY
+  }/images/capa?slug=${slugSerie}`;
 }
 
 export function getSerieImageUrlBySlug(

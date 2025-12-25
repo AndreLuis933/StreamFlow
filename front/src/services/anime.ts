@@ -2,12 +2,11 @@ import axios from "@/lib/axios";
 import axiosLib from "axios";
 import type {
   ApiAnimeResponse,
-  ApiDataResponse,
   DetalhesAnimeResponse,
   DetalhesEpResponse,
   DetalhesFilmeResponse,
+  ResponseCatalago,
 } from "@/types/api";
-import { parseAnimeResponse } from "@/utils/prosessData";
 
 const apiANALYSIS = axiosLib.create({
   baseURL: import.meta.env.VITE_API_BASE_URL_ANALYSIS,
@@ -47,13 +46,6 @@ export async function fetchDetalhesMovieBySlug(slug: string) {
   return data;
 }
 
-export async function fetchAnimeBySearch(search: string) {
-  const { data } = await axios.get<ApiDataResponse>(
-    `data?q=${encodeURIComponent(search)}`
-  );
-  return data;
-}
-
 export async function fetchIntroDuration(anime: string, ep: string) {
   const { data } = await apiANALYSIS.get<void>(
     `intro?nome=${encodeURIComponent(anime)}&ep=${ep}`
@@ -68,9 +60,6 @@ export async function fetchCreditsDuration(anime: string, ep: string) {
   return data;
 }
 
-interface ResponseCatalago{
-"series":string[]
-}
 
 export async function fetchCatalago() {
   const { data } = await axios.get<ResponseCatalago>("catalago");

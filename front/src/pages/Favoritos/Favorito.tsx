@@ -13,6 +13,7 @@ import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
 
 import { useFavorito } from "./Favorito.hooks";
 import * as S from "./Favorito.styles";
+import { getSerieImageUrlBySlug } from "@/utils/images";
 
 export default function Favorito() {
   const {
@@ -43,7 +44,7 @@ export default function Favorito() {
           aria-label="Abas de favoritos"
         >
           <Tab label="Últimos Episódios" />
-          <Tab label="Meus Animes" />
+          <Tab label="Minhas Series" />
         </Tabs>
       </Box>
 
@@ -83,10 +84,10 @@ export default function Favorito() {
             {favorites.map((anime) => (
               <Grid key={anime.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
                 <S.AnimeCard>
-                  <S.AnimeActionArea onClick={() => navigate(`/a/${anime.id}`)}>
+                  <S.AnimeActionArea onClick={() => navigate(`/serie/${anime.id}`)}>
                     <S.AnimeCover
                       component="img"
-                      image={`https://static.api-vidios.net/images/animes/capas/${anime.slug}.jpg`}
+                      image={getSerieImageUrlBySlug(anime.slug)}
                       alt={anime.title}
                     />
                     <CardContent sx={{ p: 1.5, width: "100%" }}>
@@ -110,7 +111,7 @@ export default function Favorito() {
 
           {!loadingFavorites && favorites.length === 0 && (
             <Typography variant="body1" color="text.secondary">
-              Você ainda não adicionou nenhum anime aos favoritos.
+              Você ainda não adicionou nenhuma serie aos favoritos.
             </Typography>
           )}
         </>

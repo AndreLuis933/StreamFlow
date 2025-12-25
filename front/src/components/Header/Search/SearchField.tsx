@@ -2,38 +2,69 @@ import { useEffect, useState, useRef } from "react";
 import { Search as SearchIcon } from "@mui/icons-material";
 import * as S from "../Header.styles";
 
-import { useDebounce } from "@/hooks/useDebounce";
-import { TYPE_MAP } from "@/consts/const";
-import type { ApiDataResponse } from "@/types/api";
-import { fetchAnimeBySearch } from "@/services/anime";
+import type { DetalhesAnimeResponse } from "@/types/api";
+import { fetchCatalago, fetchDetalhesAnimeBySlug } from "@/services/anime";
+import { getSerieImageUrlBySlug } from "@/utils/images";
 
 const SearchComponent = () => {
   const [anime, setAnime] = useState("");
   const [open, setOpen] = useState(false);
-  const [results, setResults] = useState<ApiDataResponse["data"]>([]);
-  const debounced = useDebounce(anime, 400);
+  const [allSeries, setAllSeries] = useState<string[]>([]);
+  const [filteredSeries, setFilteredSeries] = useState<string[]>([]);
+  const [detalhesMap, setDetalhesMap] = useState<
+    Map<string, DetalhesAnimeResponse>
+  >(new Map());
+  const [loading, setLoading] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (debounced.trim().length > 2) {
-        try {
-          const r = await fetchAnimeBySearch(debounced);
-          setResults(r.data ?? []);
-          setOpen(true);
-        } catch (e) {
-          setResults([]);
-          setOpen(true);
-          console.error(e);
-        }
-      } else {
-        setResults([]);
-        setOpen(false);
-      }
+      const r = await fetchCatalago();
+      setAllSeries(r.series);
     };
     fetchData();
-  }, [debounced]);
+  }, []);
+
+  useEffect(() => {
+    const termoLower = anime.toLowerCase().trim();
+
+    if (!termoLower) {
+      setFilteredSeries([]);
+      return;
+    }
+
+    const resultados = allSeries.filter((nome) =>
+      nome.toLowerCase().includes(termoLower)
+    );
+    setFilteredSeries(resultados);
+  }, [anime, allSeries]);
+
+  useEffect(() => {
+    const fetchDetalhes = async () => {
+      if (filteredSeries.length === 0) return;
+
+      setLoading(true);
+      const novoMap = new Map(detalhesMap);
+
+      const promises = filteredSeries.map(async (nome) => {
+        if (!novoMap.has(nome)) {
+          try {
+            const detalhes = await fetchDetalhesAnimeBySlug(nome);
+            novoMap.set(nome, detalhes);
+          } catch (error) {
+            console.error(`Erro ao buscar detalhes de ${nome}:`, error);
+          }
+        }
+      });
+
+      await Promise.all(promises);
+      setDetalhesMap(novoMap);
+      setLoading(false);
+    };
+
+    fetchDetalhes();
+  }, [filteredSeries]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -48,11 +79,6 @@ const SearchComponent = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getCoverUrl = (slug: string, type: string, size = "130x209") => {
-    const tipo = TYPE_MAP[type] || "animes";
-    return `https://static.api-vidios.net/images/${tipo}/capas/${size}/${slug}.jpg`;
-  };
-
   return (
     <S.SearchContainer ref={wrapperRef}>
       <S.SearchIconWrapper>
@@ -60,17 +86,32 @@ const SearchComponent = () => {
       </S.SearchIconWrapper>
 
       <S.StyledInputBase
-        placeholder="Busca por Animes..."
+        placeholder="Busca por Series..."
         inputProps={{ "aria-label": "search" }}
         value={anime}
-        onChange={(e) => setAnime(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setAnime(value);
+          if (value.length > 0) setOpen(true);
+        }}
         onFocus={() => {
-          if (results.length > 0 || anime.length > 2) setOpen(true);
+          if (filteredSeries.length > 0 || anime.length > 0) setOpen(true);
         }}
       />
 
       <S.FloatCard $show={open}>
-        {results.length === 0 ? (
+        {loading && filteredSeries.length > 0 ? (
+          <div
+            style={{
+              padding: "12px",
+              color: "#999",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            Carregando...
+          </div>
+        ) : filteredSeries.length === 0 ? (
           <div
             style={{
               padding: "12px",
@@ -82,20 +123,29 @@ const SearchComponent = () => {
             Nenhum resultado encontrado
           </div>
         ) : (
-          results.map((it) => (
-            <S.ResultItem key={`${it.type}:${it.id}`} href={it.generic_path}>
-              <S.ResultCover
-                src={getCoverUrl(it.slug, it.type)}
-                alt={it.title}
-              />
-              <S.ResultInfo>
-                <S.ResultTitle>{it.title}</S.ResultTitle>
-                {it.synopsis && (
-                  <S.ResultSynopsis>{it.synopsis}</S.ResultSynopsis>
-                )}
-              </S.ResultInfo>
-            </S.ResultItem>
-          ))
+          filteredSeries.map((nome) => {
+            const detalhes = detalhesMap.get(nome);
+
+            if (!detalhes) return null;
+
+            return (
+              <S.ResultItem
+                key={detalhes.id}
+                href={`/serie/${detalhes.slug_serie}`}
+              >
+                <S.ResultCover
+                  src={getSerieImageUrlBySlug(detalhes.slug_serie)}
+                  alt={detalhes.title}
+                />
+                <S.ResultInfo>
+                  <S.ResultTitle>{detalhes.title}</S.ResultTitle>
+                  {detalhes.sinopse && (
+                    <S.ResultSynopsis>{detalhes.sinopse}</S.ResultSynopsis>
+                  )}
+                </S.ResultInfo>
+              </S.ResultItem>
+            );
+          })
         )}
       </S.FloatCard>
     </S.SearchContainer>

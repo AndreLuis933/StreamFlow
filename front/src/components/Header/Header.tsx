@@ -68,7 +68,7 @@ const Header = () => {
           size="small"
           sx={{
             color: "#fff",
-            display: { xs: "none", sm: "inline-flex" },
+            display: { xs: "inline-flex", sm: "inline-flex" },
           }}
           aria-label="favoritos"
           component={Link}
