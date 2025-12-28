@@ -327,7 +327,7 @@ app.get('/serie', async (c) => {
 				// Enriquecer com dados da série
 				return {
 					...metadata,
-					serie: {
+					anime: {
 						titulo: serieInfo.titulo,
 						slug_serie: serieInfo.slug_serie,
 						generate_id: serieInfo.generate_id,
@@ -456,7 +456,7 @@ app.get('/detalhes/episodio', async (c) => {
 				// MOCK: generate_id do episódio (substituir por lógica real caso exista)
 				generate_id: `${nome}-${epId}`,
 
-				serie: {
+				anime: {
 					titulo: serieInfo.title,
 					slug_serie: serieInfo.slug_serie ?? nome,
 
@@ -475,7 +475,7 @@ app.get('/detalhes/episodio', async (c) => {
 							// MOCK: generate_id do episódio anterior
 							generate_id: `${nome}-${parseInt(prevEpId!.replace(/\D/g, ''), 10)}`,
 
-							serie: {
+							anime: {
 								titulo: serieInfo.title,
 								slug_serie: serieInfo.slug_serie ?? nome,
 							},
@@ -493,7 +493,7 @@ app.get('/detalhes/episodio', async (c) => {
 							// MOCK: generate_id do próximo episódio
 							generate_id: `${nome}-${parseInt(nextEpId!.replace(/\D/g, ''), 10)}`,
 
-							serie: {
+							anime: {
 								titulo: serieInfo.title,
 								slug_serie: serieInfo.slug_serie ?? nome,
 							},
