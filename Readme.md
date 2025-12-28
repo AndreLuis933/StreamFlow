@@ -1,52 +1,148 @@
-# 🎬 Projeto de Player de Vídeo Otimizado com Detecção de Intro/Créditos
+# 🎬 StreamFlow
 
 ## ✨ Sobre o Projeto
 
-Este projeto é uma **Single Page Application (SPA)** que oferece uma experiência de reprodução de vídeo superior para conteúdo online. Ele resolve problemas comuns de travamento e melhora a usabilidade ao introduzir funcionalidades como **"Pular Intro"** e **"Pular Créditos"** automáticos, além de gerenciamento de favoritos e acompanhamento de lançamentos.
+Este projeto é uma **plataforma de streaming própria (POC)** que demonstra de ponta a ponta a construção de um serviço de vídeo sob demanda, pensado como **projeto de portfólio** com foco em:
 
-A aplicação atua como um **proxy inteligente** para o site de vídeos original, otimizando o streaming e adicionando recursos avançados sem modificar a fonte do conteúdo.
+- Entregar uma **experiência de reprodução fluida** com player HLS moderno,
+- Implementar **detecção automática de intro/créditos** via análise de áudio,
+- Operar **100% em free tier ou baixo custo** (AWS, Cloudflare, Firebase, Vercel),
+- Oferecer **autenticação, favoritos e acompanhamento de conteúdo**.
 
-**[ 🚀 Veja a demo online aqui! ](https://stream-flow-dev.vercel.app/)**
+A arquitetura foi desenhada para ser **barata, escalável e funcional**, com proxy de vídeo na borda, backend serverless de análise de mídia e cache inteligente de resultados.
+
+Todo o conteúdo de vídeo é **próprio do projeto**: montagens produzidas a partir de **áudio e vídeo obtidos no Pixabay**, com tema central em **natureza**.
+
+**[🚀 Veja a demo online aqui!](https://stream-flow-dev.vercel.app/)**
+
+---
 
 ## 🚀 Tecnologias Utilizadas
 
-| Categoria       | Tecnologia(s)                               |
-| :-------------- | :------------------------------------------ |
-| **Front-end**   | React, TypeScript, MUI, Emotion/styled      |
-| **Player**      | Plyr, HLS.js                                |
-| **Roteamento**  | React Router DOM                            |
-| **Proxy**       | Cloudflare Workers (TypeScript)             |
-| **Backend (Áudio)** | AWS Lambda (Python), `av` (FFmpeg), NumPy |
-| **Banco/Cache** | Firebase/Firestore                          |
-| **Hospedagem**  | Vercel (Front-end), Cloudflare (Worker), AWS (Lambda) |
+| Categoria             | Tecnologia(s)                                               |
+| :-------------------- | :--------------------------------------------------------- |
+| **Front-end**         | React, TypeScript, MUI, Emotion/styled                     |
+| **Player**            | Plyr, HLS.js                                               |
+| **Roteamento**        | React Router DOM                                           |
+| **Proxy de Vídeo**    | Cloudflare Workers (TypeScript)                            |
+| **Backend (Áudio)**   | AWS Lambda (Python), `av` (FFmpeg), NumPy, STFT            |
+| **Origem de Vídeo**   | AWS S3                                                     |
+| **Banco / Cache**     | Firebase/Firestore                                         |
+| **Hospedagem Front**  | Vercel                                                     |
+
+---
 
 ## ⚙️ Como Funciona (Visão Geral)
 
-O projeto é dividido em três pilares principais que trabalham em conjunto para entregar a experiência final:
+O sistema é dividido em três blocos principais que trabalham em conjunto:
 
-### 1. Front-end Interativo (SPA)
+### 1. Front-end Interativo (SPA em React + TypeScript)
 
--   **Interface:** Uma aplicação web moderna construída com **React e TypeScript**, utilizando **MUI** para componentes e **Emotion/styled** para estilização responsiva (desktop e mobile).
--   **Autenticação:** Permite **login com Google**, gerenciamento de **series favoritos** e acompanhamento de **novos lançamentos**.
--   **Player Otimizado:** Integra o player **Plyr** com **HLS.js** para streaming de vídeo adaptativo, garantindo reprodução fluida e sem travamentos.
--   **Navegação:** **React Router DOM** para uma experiência de navegação rápida e sem recarregamento de página.
+- **Interface moderna** construída com **React, TypeScript e MUI**, com estilização via **Emotion/styled**.
+- **Autenticação com Google**:
+  - Login social,
+  - Sincronização de perfil e preferências.
+- **Favoritos e acompanhamento**:
+  - Marcar séries/vídeos favoritos,
+  - Acompanhar novos lançamentos,
+  - Dados salvos no **Firestore** vinculados à conta do usuário.
+- **Player otimizado**:
+  - Integração **Plyr + HLS.js** para streaming adaptativo,
+  - Reprodução fluida de vídeos hospedados no **S3** via proxy,
+  - Botões **"Pular Intro"** e **"Pular Créditos"** exibidos nos momentos corretos.
+- **Navegação SPA**:
+  - **React Router DOM** para transições rápidas sem recarregar a página,
+  - Rotas públicas (login, feed) e protegidas (player, favoritos).
+- **Layout responsivo**:
+  - Desktop: grid amplo, múltiplas colunas,
+  - Mobile: layout em coluna, componentes compactos.
+
+---
 
 ### 2. Proxy de Vídeo Inteligente (Cloudflare Worker)
 
--   Atua como uma camada intermediária entre o front-end e o site de vídeos original.
--   Escrito em **TypeScript** e executado na rede de borda da **Cloudflare**.
--   **Função:** Encaminha requisições de vídeo, adiciona headers necessários (como `referer`) e implementa **cache** para otimizar o carregamento e reduzir a carga no servidor de origem.
+- Camada intermediária entre o front-end e o **bucket S3** onde os vídeos estão hospedados.
+- Escrito em **TypeScript**, executado na **rede de borda da Cloudflare**.
+- Responsabilidades:
+  - Receber requisições de playlists `.m3u8` e segmentos de vídeo,
+  - Encaminhar para o **S3**,
+  - Adaptar/reescrever URLs quando necessário,
+  - Controlar headers HTTP,
+  - Implementar **cache** para playlists e segmentos frequentemente acessados.
+- Resultado:
+  - Reduz latência para o usuário final,
+  - Diminui chamadas diretas ao S3,
+  - Ajuda a manter o consumo dentro de limites de custo desejados.
 
-### 3. Backend de Detecção de Intro/Créditos (AWS Lambda)
+---
 
--   Uma função **Python** na **AWS Lambda** que analisa o áudio dos vídeos para identificar automaticamente os trechos de intro e créditos.
--   **Processo:**
-    1.  **Download em Memória:** Baixa dois episódios (atual e um de referência) via HLS, mantendo tudo na RAM para eficiência.
-    2.  **Extração de Áudio:** Utiliza `av` (bindings para FFmpeg) para extrair, decodificar e normalizar o áudio.
-    3.  **Fingerprint de Áudio:** Aplica **STFT** e técnicas de **detecção de picos** para gerar uma "impressão digital" única do áudio de cada episódio.
-    4.  **Alinhamento e Descoberta:** Compara as impressões digitais de dois episódios para encontrar o trecho de áudio idêntico (a intro ou os créditos).
-    5.  **Cache:** Os timestamps de início e fim da intro/créditos são armazenados no **Firebase/Firestore** para acesso rápido em futuras reproduções, evitando reprocessamento.
+### 3. Backend de Detecção de Intro/Créditos (AWS Lambda + Python + S3)
 
-## 💰 Controle de Custos
+A **AWS Lambda** analisa o áudio dos vídeos armazenados no **S3** para detectar automaticamente **trechos recorrentes** (intros, créditos, vinhetas) com base em fingerprint de áudio.
 
-Todo o projeto foi arquitetado para operar **integralmente dentro dos tiers gratuitos** das plataformas utilizadas (Vercel, Cloudflare, AWS Lambda, Firebase/Firestore), garantindo escalabilidade sem custos operacionais.
+#### Processo de Análise:
+
+1. **Leitura dos vídeos a partir do S3**:
+   - A Lambda acessa diretamente os arquivos de mídia no **S3**,
+   - Compara, por exemplo, dois episódios de uma mesma série (atual e referência).
+
+2. **Extração e normalização do áudio**:
+   - Carrega o vídeo em memória e extrai somente o stream de áudio via bindings de FFmpeg (`av`),
+   - Reamostragem para taxa fixa, conversão para mono, normalização para `float32` no intervalo `[-1, 1]`.
+
+3. **Fingerprint de áudio**:
+   - Aplica **STFT** ao sinal para gerar o espectrograma (frequência × tempo),
+   - Detecta picos de energia em diferentes janelas,
+   - Combina picos próximos no tempo em pares, gerando hashes compactos (`freq1|freq2|Δt`),
+   - Resultado: "impressão digital" de cada vídeo, composta por hashes com timestamps associados.
+
+4. **Matching entre vídeos**:
+   - Mapeia os hashes do vídeo de referência em "hash → tempos",
+   - Para cada hash em comum com o vídeo alvo, calcula o deslocamento de tempo (offset),
+   - Histograma de offsets revela o alinhamento temporal mais provável,
+   - Clusters contínuos de matches indicam o **trecho idêntico** (intro/créditos/vinheta).
+
+5. **Cálculo de início e duração**:
+   - A partir do cluster dominante, determina:
+     - Quando começa a intro no episódio atual,
+     - Quanto tempo ela dura,
+     - Nível de confiança baseado na quantidade e consistência dos matches.
+
+6. **Cache no Firestore**:
+   - Timestamps calculados (início/fim de intro/créditos) são salvos no **Firestore**, associados ao vídeo/série/episódio,
+   - Em chamadas futuras, a Lambda consulta o Firestore e retorna imediatamente se o resultado já existe, evitando reprocessamento.
+
+---
+
+## 💰 Custos e Escalabilidade
+
+Todo o desenho foi feito para operar **inteiramente dentro dos tiers gratuitos ou de baixo custo** de:
+
+- **Cloudflare** (Workers com cache na borda),
+- **AWS** (Lambda sob demanda + S3 para armazenamento de vídeos),
+- **Firebase/Firestore** (cache de timestamps e metadados),
+- **Vercel** (Front-end).
+
+O uso de **cache na borda (Cloudflare)** e de **processamento sob demanda (Lambda + Firestore como cache de resultados)** ajuda a minimizar acessos diretos ao S3 e reprocessamentos desnecessários.
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+### Licença do Conteúdo de Vídeo
+
+Todo o conteúdo de vídeo utilizado neste projeto é composto por **áudio e vídeo obtidos no Pixabay**, sob a **Pixabay Content License**, que permite:
+
+✓ Uso gratuito do conteúdo  
+✓ Uso sem necessidade de atribuição (embora sempre apreciado)  
+✓ Modificação ou adaptação do conteúdo em novas obras  
+
+**Usos proibidos incluem:**
+
+✕ Venda ou distribuição do conteúdo de forma isolada (sem esforço criativo aplicado)  
+✕ Uso comercial de conteúdo com marcas/logos reconhecíveis em produtos físicos  
+✕ Uso de forma imoral, ilegal, enganosa ou como parte de marca registrada  
+
+Para mais detalhes, consulte o [resumo completo da licença Pixabay](https://pixabay.com/pt/service/license-summary/).

@@ -11,7 +11,7 @@ import {
 } from './s3';
 import { tryCache } from './cache';
 
-const CACHE_TTL = 1; // 7 dias 604800
+const CACHE_TTL = 604800; // 7 dias
 
 export function registerRoutes(app: Hono<{ Bindings: Bindings }>) {
 	// ========== M3U8 ==========
