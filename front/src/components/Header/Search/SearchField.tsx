@@ -2,17 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { Search as SearchIcon } from "@mui/icons-material";
 import * as S from "../Header.styles";
 
-import type { DetalhesAnimeResponse } from "@/types/api";
-import { fetchCatalago, fetchDetalhesAnimeBySlug } from "@/services/anime";
+import type { DetalhesSerieResponse } from "@/types/api";
+import { fetchCatalago, fetchDetalhesSerieBySlug } from "@/services/serie";
 import { getSerieImageUrlBySlug } from "@/utils/images";
 
 const SearchComponent = () => {
-  const [anime, setAnime] = useState("");
+  const [serie, setSerie] = useState("");
   const [open, setOpen] = useState(false);
   const [allSeries, setAllSeries] = useState<string[]>([]);
   const [filteredSeries, setFilteredSeries] = useState<string[]>([]);
   const [detalhesMap, setDetalhesMap] = useState<
-    Map<string, DetalhesAnimeResponse>
+    Map<string, DetalhesSerieResponse>
   >(new Map());
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ const SearchComponent = () => {
   }, []);
 
   useEffect(() => {
-    const termoLower = anime.toLowerCase().trim();
+    const termoLower = serie.toLowerCase().trim();
 
     if (!termoLower) {
       setFilteredSeries([]);
@@ -38,7 +38,7 @@ const SearchComponent = () => {
       nome.toLowerCase().includes(termoLower)
     );
     setFilteredSeries(resultados);
-  }, [anime, allSeries]);
+  }, [serie, allSeries]);
 
   useEffect(() => {
     const fetchDetalhes = async () => {
@@ -50,7 +50,7 @@ const SearchComponent = () => {
       const promises = filteredSeries.map(async (nome) => {
         if (!novoMap.has(nome)) {
           try {
-            const detalhes = await fetchDetalhesAnimeBySlug(nome);
+            const detalhes = await fetchDetalhesSerieBySlug(nome);
             novoMap.set(nome, detalhes);
           } catch (error) {
             console.error(`Erro ao buscar detalhes de ${nome}:`, error);
@@ -88,14 +88,14 @@ const SearchComponent = () => {
       <S.StyledInputBase
         placeholder="Busca por Series..."
         inputProps={{ "aria-label": "search" }}
-        value={anime}
+        value={serie}
         onChange={(e) => {
           const value = e.target.value;
-          setAnime(value);
+          setSerie(value);
           if (value.length > 0) setOpen(true);
         }}
         onFocus={() => {
-          if (filteredSeries.length > 0 || anime.length > 0) setOpen(true);
+          if (filteredSeries.length > 0 || serie.length > 0) setOpen(true);
         }}
       />
 

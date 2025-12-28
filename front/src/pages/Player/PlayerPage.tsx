@@ -27,11 +27,11 @@ export default function PlayerPage() {
   }
   const ep = Number(data.n_episodio);
 
-  const thumb = getEpisodeImageUrlBySlug(data.anime.slug_serie, ep);
+  const thumb = getEpisodeImageUrlBySlug(data.serie.slug_serie, ep);
 
   const goTo = (slug: string) => navigate(`/watch/${slug}`);
   const src = `${VITE_API_BASE_URL_PROXY}/m3u8?nome=${encodeURIComponent(
-    data.anime.slug_serie
+    data.serie.slug_serie
   )}&ep=${encodeURIComponent(ep)}`;
 
   return (
@@ -53,7 +53,7 @@ export default function PlayerPage() {
             <CardPlayer
               thumbnail={thumb}
               videoId={IdEp}
-              nome={data.anime.slug_serie}
+              nome={data.serie.slug_serie}
               ep={data.n_episodio}
               src={src}
               onVideoEnd={() => {
@@ -65,8 +65,8 @@ export default function PlayerPage() {
               Postado {formatarTempoDecorrido(new Date(data.data_registro))}
             </Typography>
 
-            <TitleLink to={`/serie/${data.anime.generate_id}`}>
-              {data.anime.titulo}
+            <TitleLink to={`/serie/${data.serie.generate_id}`}>
+              {data.serie.titulo}
             </TitleLink>
 
             <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
@@ -94,7 +94,7 @@ export default function PlayerPage() {
                       label="Anterior "
                       epNumber={ep - 1}
                       thumbUrl={getEpisodeImageUrlBySlug(
-                        data.anime.slug_serie,
+                        data.serie.slug_serie,
                         ep - 1
                       )}
                       $align="left"
@@ -111,7 +111,7 @@ export default function PlayerPage() {
                       label="Próximo "
                       epNumber={ep + 1}
                       thumbUrl={getEpisodeImageUrlBySlug(
-                        data.anime.slug_serie,
+                        data.serie.slug_serie,
                         ep + 1
                       )}
                       $align="right"

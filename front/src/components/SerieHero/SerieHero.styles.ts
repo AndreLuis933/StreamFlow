@@ -1,8 +1,8 @@
 import { Box, Typography, Chip, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-// Container principal do card de anime (hero/capa)
-export const AnimeHeroContainer = styled(Box)(({ theme }) => ({
+// Container principal do card de serie (hero/capa)
+export const SerieHeroContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   gap: 32,
   padding: 32,
@@ -73,8 +73,8 @@ export const ContentContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Título do anime
-export const AnimeTitle = styled(Typography)(({ theme }) => ({
+// Título do serie
+export const SerieTitle = styled(Typography)(({ theme }) => ({
   fontSize: 36,
   fontWeight: 700,
   color: "#fff",

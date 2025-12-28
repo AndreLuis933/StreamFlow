@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useEpisodesFetcher } from "@/hooks/useEpisodesFetcher";
 import { getFavorites } from "@/services/firebase";
 
-export interface FavoriteAnime {
+export interface FavoriteSerie {
   slug: string;
   title: string;
   id: string;
@@ -16,7 +16,7 @@ export function useFavorito() {
 
   const [tabValue, setTabValue] = useState(0);
 
-  const [favorites, setFavorites] = useState<FavoriteAnime[]>([]);
+  const [favorites, setFavorites] = useState<FavoriteSerie[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
 
   const slugsList = useMemo(() => favorites.map((f) => f.id), [favorites]);

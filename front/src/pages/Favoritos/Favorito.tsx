@@ -30,7 +30,7 @@ export default function Favorito() {
   if (!currentUser) {
     return (
       <Alert severity="info">
-        Precisa estar logado para cadastrar animes favoritos
+        Precisa estar logado para cadastrar series favoritos
       </Alert>
     );
   }
@@ -76,27 +76,27 @@ export default function Favorito() {
         </>
       )}
 
-      {/* TAB 2: LISTA DE ANIMES (CAPA + TÍTULO) */}
+      {/* TAB 2: LISTA DE Series (CAPA + TÍTULO) */}
       {tabValue === 1 && (
         <>
           <SectionTitle>Biblioteca</SectionTitle>
           <Grid container spacing={2}>
-            {favorites.map((anime) => (
-              <Grid key={anime.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                <S.AnimeCard>
-                  <S.AnimeActionArea onClick={() => navigate(`/serie/${anime.id}`)}>
-                    <S.AnimeCover
+            {favorites.map((serie) => (
+              <Grid key={serie.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
+                <S.SerieCard>
+                  <S.SerieActionArea onClick={() => navigate(`/serie/${serie.id}`)}>
+                    <S.SerieCover
                       component="img"
-                      image={getSerieImageUrlBySlug(anime.slug)}
-                      alt={anime.title}
+                      image={getSerieImageUrlBySlug(serie.slug)}
+                      alt={serie.title}
                     />
                     <CardContent sx={{ p: 1.5, width: "100%" }}>
-                      <S.AnimeTitle variant="subtitle2">
-                        {anime.title}
-                      </S.AnimeTitle>
+                      <S.SerieTitle variant="subtitle2">
+                        {serie.title}
+                      </S.SerieTitle>
                     </CardContent>
-                  </S.AnimeActionArea>
-                </S.AnimeCard>
+                  </S.SerieActionArea>
+                </S.SerieCard>
               </Grid>
             ))}
 

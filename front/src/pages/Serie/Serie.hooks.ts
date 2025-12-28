@@ -1,16 +1,16 @@
-// src/hooks/Anime.hooks.ts
+// src/hooks/Serie.hooks.ts
 import { useEffect, useState, useCallback } from "react";
-import type { DetalhesAnimeResponse, Episode } from "@/types/api";
-import { fetchAnimeBySlug, fetchDetalhesAnimeBySlug } from "@/services/anime";
+import type { DetalhesSerieResponse, Episode } from "@/types/api";
+import { fetchSerieBySlug, fetchDetalhesSerieBySlug } from "@/services/serie";
 
-export function useAnimeEpisodes(order: string, slug?: string) {
+export function useSerieEpisodes(order: string, slug?: string) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loadingEpisodes, setLoadingEpisodes] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [error, setError] = useState<boolean>(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
-  const [data, setData] = useState<DetalhesAnimeResponse | null>(null);
+  const [data, setData] = useState<DetalhesSerieResponse | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -21,7 +21,7 @@ export function useAnimeEpisodes(order: string, slug?: string) {
     async function fetchDetails() {
       setLoadingDetails(true);
       try {
-        const result = await fetchDetalhesAnimeBySlug(currentSlug);
+        const result = await fetchDetalhesSerieBySlug(currentSlug);
         if (!active) return;
         setData(result);
       } catch (err) {
@@ -44,7 +44,7 @@ export function useAnimeEpisodes(order: string, slug?: string) {
     setLoadingEpisodes(true);
     setError(false);
     try {
-      const res = await fetchAnimeBySlug(slug, page, order);
+      const res = await fetchSerieBySlug(slug, page, order);
       setEpisodes((prev) => [...prev, ...res.data]);
       setHasNextPage(res.meta.hasNextPage);
       setPage((prev) => prev + 1);
@@ -62,7 +62,7 @@ export function useAnimeEpisodes(order: string, slug?: string) {
       setLoadingEpisodes(true);
       setError(false);
       try {
-        const res = await fetchAnimeBySlug(slug, 1, order);
+        const res = await fetchSerieBySlug(slug, 1, order);
         if (active) {
           setEpisodes(res.data);
           setHasNextPage(res.meta.hasNextPage);

@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 def extract_and_save_common_segment(
     reference_audio_bytes: np.ndarray,
     query_audio_bytes: np.ndarray,
-    anime: str,
+    serie: str,
     ep_target: int,
     type_: str,
     start_offset: float,
@@ -99,10 +99,10 @@ def extract_and_save_common_segment(
 
     # 5. Salvar no Firebase
     map_h = build_hash_map(seg_hashes)
-    save_to_firebase_hash(map_h, anime, ep_target, type_)
+    save_to_firebase_hash(map_h, serie, ep_target, type_)
 
     result = {"start_sec": start_stored + start_offset, "end_sec": end_stored + start_offset, "duration": duration}
-    save_to_firebase_result(result, anime, ep_target, type_)
+    save_to_firebase_result(result, serie, ep_target, type_)
 
     return result
 

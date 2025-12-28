@@ -12,18 +12,18 @@ export default function Home() {
       <Grid container spacing={2}>
         {episodes.map((serie) => (
           <Grid key={serie.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-            <S.AnimeCard>
-              <S.AnimeActionArea onClick={() => navigate(`/serie/${serie.title}`)}>
-                <S.AnimeCover
+            <S.SerieCard>
+              <S.SerieActionArea onClick={() => navigate(`/serie/${serie.title}`)}>
+                <S.SerieCover
                   component="img"
                   image={getSerieImageUrlBySlug(serie.title)}
                   alt={serie.title}
                 />
                 <CardContent sx={{ p: 1.5, width: "100%" }}>
-                  <S.AnimeTitle variant="subtitle2">{serie.title}</S.AnimeTitle>
+                  <S.SerieTitle variant="subtitle2">{serie.title}</S.SerieTitle>
                 </CardContent>
-              </S.AnimeActionArea>
-            </S.AnimeCard>
+              </S.SerieActionArea>
+            </S.SerieCard>
           </Grid>
         ))}
       </Grid>

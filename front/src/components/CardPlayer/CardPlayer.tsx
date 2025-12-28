@@ -3,7 +3,7 @@ import Plyr from "plyr-react";
 import "plyr-react/plyr.css";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
 import { setupHlsPlayer } from "@/hooks/setupHlsPlayer";
-import { fetchIntroDuration, fetchCreditsDuration } from "@/services/anime";
+import { fetchIntroDuration, fetchCreditsDuration } from "@/services/serie";
 import "./button.css";
 import { waitForPlayer } from "@/utils/waitForPlayer";
 import { attachKeyboardListeners } from "@/hooks/listeners/keyboardListeners";

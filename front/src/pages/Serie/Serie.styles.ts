@@ -1,8 +1,8 @@
 import { Box, Typography, Chip } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import styled_emotion from "@emotion/styled";
-// Container principal do card de anime (hero/capa)
-export const AnimeHero = styled(Box)(() => ({
+// Container principal do card de serie (hero/capa)
+export const SerieHero = styled(Box)(() => ({
   display: "flex",
   gap: 32,
   padding: 32,
@@ -54,8 +54,8 @@ export const ContentContainer = styled(Box)({
   flex: 1,
 });
 
-// Título do anime
-export const AnimeTitle = styled(Typography)({
+// Título do serie
+export const SerieTitle = styled(Typography)({
   fontSize: 36,
   fontWeight: 700,
   color: "#fff",

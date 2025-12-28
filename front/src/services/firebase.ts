@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase-config";
 
-interface FavoriteAnime {
+interface FavoriteSerie {
   id: string;
   title: string;
   addedAt: Timestamp;
@@ -30,7 +30,7 @@ export const saveFavorite = async (
     // Path: users -> {userId} -> favorites -> {slug}
     const favoriteRef = doc(db, "users", userId, "favorites", id);
 
-    const data: FavoriteAnime = {
+    const data: FavoriteSerie = {
       id,
       title,
       addedAt: Timestamp.now(),
@@ -52,7 +52,7 @@ export const saveFavorite = async (
 
 export const getFavorites = async (
   userId: string
-): Promise<FavoriteAnime[]> => {
+): Promise<FavoriteSerie[]> => {
   try {
     // Reference to the 'favorites' subcollection
     const favoritesRef = collection(db, "users", userId, "favorites");
@@ -68,8 +68,8 @@ export const getFavorites = async (
     const querySnapshot = await getDocs(q);
 
     // Map documents to a simple array
-    const favoritesList: FavoriteAnime[] = querySnapshot.docs.map(
-      (doc) => doc.data() as FavoriteAnime
+    const favoritesList: FavoriteSerie[] = querySnapshot.docs.map(
+      (doc) => doc.data() as FavoriteSerie
     );
 
     return favoritesList;
@@ -92,7 +92,7 @@ export const isFavorite = async (
 
     // Retorna true APENAS se existir E se a propriedade favorito for true
     if (docSnap.exists()) {
-      const data = docSnap.data() as FavoriteAnime;
+      const data = docSnap.data() as FavoriteSerie;
       return data.favorito === true;
     }
 
@@ -113,7 +113,7 @@ export const fetchSegmentDurationFirebase = async (
   tipo: string,
   fireJob: FireJobFn
 ): Promise<SegmentDuration | null> => {
-  const docRef = doc(db, "animes", nome, tipo, ep);
+  const docRef = doc(db, "series", nome, tipo, ep);
 
   const existingSnap = await getDoc(docRef);
 

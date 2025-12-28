@@ -1,5 +1,5 @@
-export const TYPE_MAP: Record<string, "animes" | "filmes"> = {
-  anime: "animes",
+export const TYPE_MAP: Record<string, "series" | "filmes"> = {
+  serie: "series",
   movie: "filmes",
 };
 export const plyrOptions = {

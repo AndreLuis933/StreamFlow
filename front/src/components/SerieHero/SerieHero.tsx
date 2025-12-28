@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import {
-  AnimeHeroContainer,
+  SerieHeroContainer,
   PosterContainer,
   ContentContainer,
-  AnimeTitle,
+  SerieTitle,
   InfoRow,
   ScoreBox,
   ScoreValue,
@@ -19,9 +19,9 @@ import {
   FooterContainer,
   FavoriteButton,
   SeeMoreButton,
-} from "./AnimeHero.styles";
+} from "./SerieHero.styles";
 
-export interface AnimeHeroProps {
+export interface SerieHeroProps {
   title: string;
   posterUrl: string;
   score?: number;
@@ -33,7 +33,7 @@ export interface AnimeHeroProps {
   isFavorite: boolean;
 }
 
-const AnimeHero: React.FC<AnimeHeroProps> = ({
+const SerieHero: React.FC<SerieHeroProps> = ({
   title,
   posterUrl,
   score,
@@ -51,13 +51,13 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
   };
 
   return (
-    <AnimeHeroContainer>
+    <SerieHeroContainer>
       <PosterContainer>
         <img src={posterUrl} alt={title} />
       </PosterContainer>
 
       <ContentContainer>
-        <AnimeTitle>{title}</AnimeTitle>
+        <SerieTitle>{title}</SerieTitle>
 
         <InfoRow>
           {/* Score */}
@@ -114,8 +114,8 @@ const AnimeHero: React.FC<AnimeHeroProps> = ({
           </FavoriteButton>
         </FooterContainer>
       </ContentContainer>
-    </AnimeHeroContainer>
+    </SerieHeroContainer>
   );
 };
 
-export default AnimeHero;
+export default SerieHero;

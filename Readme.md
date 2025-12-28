@@ -27,7 +27,7 @@ O projeto é dividido em três pilares principais que trabalham em conjunto para
 ### 1. Front-end Interativo (SPA)
 
 -   **Interface:** Uma aplicação web moderna construída com **React e TypeScript**, utilizando **MUI** para componentes e **Emotion/styled** para estilização responsiva (desktop e mobile).
--   **Autenticação:** Permite **login com Google**, gerenciamento de **animes favoritos** e acompanhamento de **novos lançamentos**.
+-   **Autenticação:** Permite **login com Google**, gerenciamento de **series favoritos** e acompanhamento de **novos lançamentos**.
 -   **Player Otimizado:** Integra o player **Plyr** com **HLS.js** para streaming de vídeo adaptativo, garantindo reprodução fluida e sem travamentos.
 -   **Navegação:** **React Router DOM** para uma experiência de navegação rápida e sem recarregamento de página.
 

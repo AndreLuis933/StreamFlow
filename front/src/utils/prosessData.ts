@@ -1,10 +1,10 @@
-import type { DetalhesAnimeResponse } from "@/types/api";
+import type { DetalhesSerieResponse } from "@/types/api";
 
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function parseAnimeResponse(raw: any): DetalhesAnimeResponse {
+export function parseSerieResponse(raw: any): DetalhesSerieResponse {
   return {
     ...raw,
     pageProps: {

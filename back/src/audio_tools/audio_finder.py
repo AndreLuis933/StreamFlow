@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 def find_pattern_in_audio(
     audio_bytes: np.ndarray,
     stored_hash_map: dict,
-    anime: str,
+    serie: str,
     ep: int,
     type_: str,
     start_offset: float,
@@ -60,6 +60,6 @@ def find_pattern_in_audio(
     # 4. Formatar e Salvar Resultado
     final_result = {key: value + start_offset for key, value in match_result.items()}
 
-    save_to_firebase_result(final_result, anime, ep, type_)
+    save_to_firebase_result(final_result, serie, ep, type_)
 
     return final_result

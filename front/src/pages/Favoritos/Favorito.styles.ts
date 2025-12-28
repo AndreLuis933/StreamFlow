@@ -1,7 +1,7 @@
 import { styled } from "@mui/material/styles";
 import { Card, CardMedia, Typography, CardActionArea } from "@mui/material";
 
-export const AnimeCard = styled(Card)(() => ({
+export const SerieCard = styled(Card)(() => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
@@ -11,21 +11,21 @@ export const AnimeCard = styled(Card)(() => ({
   },
 }));
 
-export const AnimeActionArea = styled(CardActionArea)({
+export const SerieActionArea = styled(CardActionArea)({
   height: "100%",
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
 });
 
-export const AnimeCover = styled(CardMedia)({
+export const SerieCover = styled(CardMedia)({
   width: "100%",
   aspectRatio: "2/3",
   objectFit: "cover",
   objectPosition: "center",
 }) as typeof CardMedia;
 
-export const AnimeTitle = styled(Typography)({
+export const SerieTitle = styled(Typography)({
   fontWeight: "bold",
   lineHeight: 1.2,
   overflow: "hidden",

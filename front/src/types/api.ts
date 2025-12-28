@@ -1,4 +1,4 @@
-export interface ApiAnimeResponse {
+export interface ApiSerieResponse {
   meta: {
     timestamp: number;
     totalOfEpisodes: number;
@@ -18,7 +18,7 @@ export interface Episode {
   slug_serie: string;
 }
 
-export interface DetalhesAnimeResponse {
+export interface DetalhesSerieResponse {
   id: number;
   generos: string[];
   score: number;
@@ -39,7 +39,7 @@ export interface DetalhesEpResponse {
   sinopse_episodio: string;
   generate_id: string;
   data_registro: string;
-  anime: {
+  serie: {
     titulo: string;
     slug_serie: string;
     generate_id: string;
@@ -49,7 +49,7 @@ export interface DetalhesEpResponse {
     n_episodio: string;
     titulo_episodio: string;
     generate_id: string;
-    anime: {
+    serie: {
       titulo: string;
       slug_serie: string;
     };
@@ -59,7 +59,7 @@ export interface DetalhesEpResponse {
     n_episodio?: string;
     titulo_episodio?: string;
     generate_id?: string;
-    anime?: {
+    serie?: {
       titulo: string;
       slug_serie: string;
     };

@@ -1,4 +1,4 @@
-import { fetchDetalhesEpBySlug } from "@/services/anime";
+import { fetchDetalhesEpBySlug } from "@/services/serie";
 import { useQuery } from "@tanstack/react-query";
 
 export function usePlayerData(slug?: string) {

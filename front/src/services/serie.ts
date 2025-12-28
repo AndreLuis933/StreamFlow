@@ -1,8 +1,8 @@
 import axios from "@/lib/axios";
 import axiosLib from "axios";
 import type {
-  ApiAnimeResponse,
-  DetalhesAnimeResponse,
+  ApiSerieResponse,
+  DetalhesSerieResponse,
   DetalhesEpResponse,
   DetalhesFilmeResponse,
   ResponseCatalago,
@@ -14,19 +14,19 @@ const apiANALYSIS = axiosLib.create({
   headers: { "x-api-key": "LzAfuia49275xn0ugGty8174ghVyRH9aa9JUVfSt" },
 });
 
-export async function fetchAnimeBySlug(
+export async function fetchSerieBySlug(
   slug: string,
   page: number,
   order: string
 ) {
-  const { data } = await axios.get<ApiAnimeResponse>(
+  const { data } = await axios.get<ApiSerieResponse>(
     `/serie?slug=${encodeURIComponent(slug)}&page=${page}&order=${order}`
   );
   return data;
 }
 
-export async function fetchDetalhesAnimeBySlug(slug: string) {
-  const { data } = await axios.get<DetalhesAnimeResponse>(
+export async function fetchDetalhesSerieBySlug(slug: string) {
+  const { data } = await axios.get<DetalhesSerieResponse>(
     `/detalhes/serie?slug=${encodeURIComponent(slug)}`
   );
   return data;
@@ -46,16 +46,16 @@ export async function fetchDetalhesMovieBySlug(slug: string) {
   return data;
 }
 
-export async function fetchIntroDuration(anime: string, ep: string) {
+export async function fetchIntroDuration(serie: string, ep: string) {
   const { data } = await apiANALYSIS.get<void>(
-    `intro?nome=${encodeURIComponent(anime)}&ep=${ep}`
+    `intro?nome=${encodeURIComponent(serie)}&ep=${ep}`
   );
   return data;
 }
 
-export async function fetchCreditsDuration(anime: string, ep: string) {
+export async function fetchCreditsDuration(serie: string, ep: string) {
   const { data } = await apiANALYSIS.get<void>(
-    `credits?nome=${encodeURIComponent(anime)}&ep=${ep}`
+    `credits?nome=${encodeURIComponent(serie)}&ep=${ep}`
   );
   return data;
 }

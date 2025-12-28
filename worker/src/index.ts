@@ -83,7 +83,7 @@ async function getObjectFromS3(env: Bindings, key: string): Promise<{ body: Read
 }
 
 app.get('/m3u8', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		const nome = c.req.query('nome');
 		const ep = c.req.query('ep');
@@ -154,7 +154,7 @@ app.get('/m3u8', async (c) => {
 });
 
 app.get('/seg', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		const nome = c.req.query('nome');
 		const ep = c.req.query('ep');
@@ -190,7 +190,7 @@ app.get('/seg', async (c) => {
 });
 
 app.get('/catalago', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		try {
 			const { body, contentType } = await getObjectFromS3(c.env, 'catalago.json');
@@ -212,7 +212,7 @@ app.get('/catalago', async (c) => {
 });
 
 app.get('/detalhes/serie', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -235,7 +235,7 @@ app.get('/detalhes/serie', async (c) => {
 	});
 });
 app.get('/images/capa', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -258,7 +258,7 @@ app.get('/images/capa', async (c) => {
 	});
 });
 app.get('/images/episode', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 	return tryCache(c, cache, async () => {
 		try {
 			const slug = c.req.query('slug');
@@ -282,7 +282,7 @@ app.get('/images/episode', async (c) => {
 	});
 });
 app.get('/serie', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 
 	return tryCache(c, cache, async () => {
 		try {
@@ -327,7 +327,7 @@ app.get('/serie', async (c) => {
 				// Enriquecer com dados da série
 				return {
 					...metadata,
-					anime: {
+					serie: {
 						titulo: serieInfo.titulo,
 						slug_serie: serieInfo.slug_serie,
 						generate_id: serieInfo.generate_id,
@@ -390,7 +390,7 @@ async function getEpisodeMetadataFromS3(env: any, slug: string, epId: string): P
 	return metadata as EpisodeMetadataFromS3;
 }
 app.get('/detalhes/episodio', async (c) => {
-	const cache = 120;
+	const cache = 604800;
 
 	return tryCache(c, cache, async () => {
 		try {
@@ -456,7 +456,7 @@ app.get('/detalhes/episodio', async (c) => {
 				// MOCK: generate_id do episódio (substituir por lógica real caso exista)
 				generate_id: `${nome}-${epId}`,
 
-				anime: {
+				serie: {
 					titulo: serieInfo.title,
 					slug_serie: serieInfo.slug_serie ?? nome,
 
@@ -475,7 +475,7 @@ app.get('/detalhes/episodio', async (c) => {
 							// MOCK: generate_id do episódio anterior
 							generate_id: `${nome}-${parseInt(prevEpId!.replace(/\D/g, ''), 10)}`,
 
-							anime: {
+							serie: {
 								titulo: serieInfo.title,
 								slug_serie: serieInfo.slug_serie ?? nome,
 							},
@@ -493,7 +493,7 @@ app.get('/detalhes/episodio', async (c) => {
 							// MOCK: generate_id do próximo episódio
 							generate_id: `${nome}-${parseInt(nextEpId!.replace(/\D/g, ''), 10)}`,
 
-							anime: {
+							serie: {
 								titulo: serieInfo.title,
 								slug_serie: serieInfo.slug_serie ?? nome,
 							},

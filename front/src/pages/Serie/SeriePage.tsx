@@ -1,26 +1,26 @@
 import { Grid, Box, Skeleton, Alert } from "@mui/material";
 import { useParams } from "react-router-dom";
 import EpisodeCard from "@/components/EpisodeCard/EpisodeCard";
-import AnimeHero from "@/components/AnimeHero/AnimeHero";
-import { useAnimeEpisodes } from "./Anime.hooks";
+import SerieHero from "@/components/SerieHero/SerieHero";
+import { useSerieEpisodes } from "./Serie.hooks";
 import { EpisodesSection, SectionTitle } from "@/components/EpisodesSection";
 import { useAuth } from "@/context/AuthContext";
 import { isFavorite, saveFavorite } from "@/services/firebase";
 import { useEffect, useState } from "react";
 
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
-import { FilterContainer, FilterLabel, OrderButton } from "./Anime.styles";
+import { FilterContainer, FilterLabel, OrderButton } from "./Serie.styles";
 import { getSerieImageUrlBySlug } from "@/utils/images";
 
 type RouteParams = { id: string };
 
-export default function AnimePage() {
+export default function SeriePage() {
   const { id } = useParams<RouteParams>();
   const [favoritado, setFavoritado] = useState(false);
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
   const { episodes, loadingEpisodes, loadingDetails, error, data } =
-    useAnimeEpisodes(order, id);
+    useSerieEpisodes(order, id);
   const { currentUser } = useAuth();
 
   let userId: string | null = null;
@@ -53,7 +53,7 @@ export default function AnimePage() {
   return (
     <>
       {!loadingDetails && data && (
-        <AnimeHero
+        <SerieHero
           title={data.title}
           posterUrl={getSerieImageUrlBySlug(data.title)}
           score={data.score}

@@ -1,7 +1,7 @@
 // src/hooks/useEpisodesFetcher.ts
 import { useEffect, useState, useCallback } from "react";
 import type { Episode } from "@/types/api";
-import { fetchAnimeBySlug } from "@/services/anime";
+import { fetchSerieBySlug } from "@/services/serie";
 
 interface UseEpisodesFetcherProps {
   slugs: string[];
@@ -20,7 +20,7 @@ export function useEpisodesFetcher({ slugs }: UseEpisodesFetcherProps) {
     try {
       const allEpisodes: Episode[] = [];
       for (const slug of slugs) {
-        const res = await fetchAnimeBySlug(slug, 1, "desc");
+        const res = await fetchSerieBySlug(slug, 1, "desc");
         allEpisodes.push(...res.data);
       }
 

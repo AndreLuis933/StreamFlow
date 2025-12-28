@@ -7,7 +7,7 @@ from config.firebase import db
 from firebase_admin import firestore
 
 
-def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):
+def save_to_firebase_hash(fingerprint: dict, serie_nome, episodio_base, type_):
     episodio_base = int(episodio_base)  # garante que é número
 
     fingerprint_json = json.dumps(fingerprint)
@@ -28,13 +28,13 @@ def save_to_firebase_hash(fingerprint: dict, anime_nome, episodio_base, type_):
         "ultima_atualizacao": firestore.SERVER_TIMESTAMP,
     }
 
-    doc_ref = db.collection("animes").document(anime_nome).collection("hashes").document(doc_id)
+    doc_ref = db.collection("series").document(serie_nome).collection("hashes").document(doc_id)
     doc_ref.set(doc_data)
 
 
-def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
+def atualizar_hash_uso(serie_nome: str, doc_id: str, episodio_novo: int):
     """Atualiza metadados quando um hash é reutilizado para outro episódio."""
-    doc_ref = db.collection("animes").document(anime_nome).collection("hashes").document(doc_id)
+    doc_ref = db.collection("series").document(serie_nome).collection("hashes").document(doc_id)
     doc = doc_ref.get()
 
     if not doc.exists:
@@ -65,6 +65,6 @@ def atualizar_hash_uso(anime_nome: str, doc_id: str, episodio_novo: int):
 
 
 def save_to_firebase_result(fingerprint, nome, ep, type_):
-    doc_ref = db.collection("animes").document(nome).collection(type_)
+    doc_ref = db.collection("series").document(nome).collection(type_)
 
     doc_ref.document(str(ep)).set(fingerprint)

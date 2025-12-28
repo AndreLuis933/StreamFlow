@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Favorito from "./pages/Favoritos/Favorito";
 import Base from "./pages/Base";
-import AnimePage from "./pages/Anime/AnimePage";
+import SeriePage from "./pages/Serie/SeriePage";
 import PlayerPage from "./pages/Player/PlayerPage";
 import Movie from "./pages/Movie/Movie";
 import { Analytics } from "@vercel/analytics/react";
@@ -18,7 +18,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Base />}>
             <Route index element={<Home />} />
-            <Route path="/serie/:id" element={<AnimePage />} />
+            <Route path="/serie/:id" element={<SeriePage />} />
             <Route path="/f/:id" element={<Movie />} />
             <Route path="/watch/:IdEp" element={<PlayerPage />} />
             <Route path="/favoritos" element={<Favorito />} />
